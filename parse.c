@@ -17,7 +17,7 @@ int eflag = 0;
 int eSamples = 0;
 int c;
 
-void print_help(){
+void print_help() {
     printf("OPTIONS\n");
     printf("\t-help\t\tdisplay the command line options\n");
     printf("\t-version\tdisplay the version number\n");
@@ -27,9 +27,8 @@ void print_help(){
     printf("\t-o file\t\tprovide the output file name(overwriting an existing file)\n");
 }
 
-void parse(int argc, char **argv)
-{
-    while ((c = getopt(argc, argv, "i:o:b:e:")) != -1){
+void parse(int argc, char **argv) {
+    while ((c = getopt(argc, argv, "i:o:b:e:")) != -1) {
         switch (c) {
             case 'i':
                 in = optarg;
