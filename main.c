@@ -12,17 +12,15 @@
 #include <stdint.h>
 #include "parse.h"
 #include "dbg.h"
-#define __DEBUG__
 
 extern char *in;
 extern char *out;
 extern int bflag;
 extern int eflag;
-extern int bSamples;
-extern int eSamples;
+extern uint32_t bSamples;
+extern uint32_t eSamples;
 
-uint32_t
-calcSample(char *c) {
+uint32_t calcSample(char *c) {
     uint32_t subchunk2Size;
     memcpy(&subchunk2Size, c + 40, 4);
 
@@ -38,8 +36,7 @@ calcSample(char *c) {
 /*
  * This program will trim canonical WAVE files
  */
-int
-main(int argc, char **argv) {
+int main(int argc, char **argv) {
     parse(argc, argv);
     if (in == NULL || out == NULL) {
         fputs("You must say something...\n", stderr);

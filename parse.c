@@ -4,17 +4,19 @@
  *
  * Distributed under FreeBSD License.
  */
+#include "dbg.h"
+
+#include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdio.h>
-#include "dbg.h"
+#include <stdint.h>
 
 char *in = NULL;
 char *out = NULL;
 int bflag = 0;
-int bSamples = 0;
+uint32_t bSamples = 0;
 int eflag = 0;
-int eSamples = 0;
+uint32_t eSamples = 0;
 int c;
 
 void print_help() {
@@ -50,7 +52,6 @@ void parse(int argc, char **argv) {
                 goto error;
         }
     }
-
     check(!(bflag && eflag), "You cannot set both -b and -e");
     check(bflag || eflag, "You need to specify the new length");
     return;
