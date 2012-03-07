@@ -34,14 +34,14 @@ PROFILE        := NO
 EXECUTABLE      := main
 
 # ------------  list of all source files  --------------------------------------
-SOURCES         := main.c parse.c
+SOURCES         := main.c parse.c file.c
 
 # ------------  compiler  ------------------------------------------------------
-CC              := clang#gcc
+CC              := gcc
 CXX             := g++
 
 # ------------  compiler flags  ------------------------------------------------
-DEBUG_CFLAGS    := -Wall -std=gnu99 -pedantic -O0 -g -mtune=i686
+DEBUG_CFLAGS    := -Wall -std=gnu99 -pedantic -O0 -g
 RELEASE_CFLAGS  := -Wall -std=gnu99 -pedantic -O3
 
 # ------------  linker flags  --------------------------------------------------
