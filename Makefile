@@ -34,14 +34,14 @@ PROFILE        := NO
 EXECUTABLE      := main
 
 # ------------  list of all source files  --------------------------------------
-SOURCES         := main.c parse.c file.c
+SOURCES         := main.c parse.c file.c data.c
 
 # ------------  compiler  ------------------------------------------------------
 CC              := gcc
 CXX             := g++
 
 # ------------  compiler flags  ------------------------------------------------
-DEBUG_CFLAGS    := -Wall -ansi -pedantic-errors -O0 -g
+DEBUG_CFLAGS    := -Wall -std=gnu99 -pedantic-errors -O0 -g
 RELEASE_CFLAGS  := -Wall -std=gnu99 -pedantic -O3
 
 # ------------  linker flags  --------------------------------------------------
@@ -197,7 +197,19 @@ zip:
 					@lokaldir=`pwd`; lokaldir=$${lokaldir##*/}; \
 					zip -r  $$lokaldir.zip * -x $(ZIP_EXCLUDE)
 
-.PHONY: clean tarball zip
+#------------- Indent ----------------------------------------------------------
+indent:
+	gindent *.c *.h
+
+
+#------------- Memory Leak Test ------------------------------------------------
+memtest:
+	make indent
+	make clean
+	make
+	valgrind --leak-check=full --dsymutil=yes ./main -b 220480 -i trimends.wav -o test.wav
+
+.PHONY: clean tarball zip indent memtest
 
 # ==============================================================================
 # vim: set tabstop=2: set shiftwidth=2:

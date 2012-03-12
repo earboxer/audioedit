@@ -28,6 +28,7 @@
 #include "parse.h"
 #include "dbg.h"
 #include "file.h"
+#include "data.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,39 +49,15 @@ extern uint32_t target_num_samples;
  */
 int
 main(int argc, char **argv) {
-    FILE           *fin, *fout;
-    int64_t         fin_size;
-    char           *buffer;
-    size_t          return_value;
     uint32_t        fout_num_samples;
     WavHeader      *ptr_original_header, *ptr_new_header;
+    Data           *data;
 
     ParseArgumentsOrDie(argc, argv);
 
-    fin = fopen(fin_path, "rb");
-    check(fin != NULL, "Cannot open the input file");
+    data = CopyDataFromFileOrDie(fin_path);
 
-    /*
-     * Get the total size of the file. 
-     */
-    fseek(fin, 0, SEEK_END);
-    fin_size = ftell(fin);
-    rewind(fin);
-
-    buffer = (char *) malloc(fin_size);
-    check_mem(buffer);
-
-    return_value = fread(buffer, 1, fin_size, fin);
-    check(return_value == fin_size, "Cannot read the entire file");
-    /*
-     * Content is already copied to memory. No need to use the input file.
-     */
-    fclose(fin);
-
-    ptr_original_header = (WavHeader *) malloc(sizeof(WavHeader));
-    check_mem(ptr_original_header);
-
-    InitialHeader(buffer, ptr_original_header);
+    ptr_original_header = InitialHeader(data->content);
 
     check(target_num_samples <= ptr_original_header->num_samples,
           "The specified number of samples is not legal.");
@@ -100,26 +77,22 @@ main(int argc, char **argv) {
     /*
      * Adjust header
      */
-    memcpy(buffer + kChunkSizeOffset, &(ptr_new_header->chunk_size), 4);
-    memcpy(buffer + kSubchunk2SizeOffset,
-           &(ptr_new_header->subchunk2_size), 4);
+    SetData(data, (void *) &(ptr_new_header->chunk_size), kChunkSizeSize,
+            kChunkSizeOffset);
+    SetData(data, (void *) &(ptr_new_header->subchunk2_size),
+            kSubchunk2SizeSize, kSubchunk2SizeOffset);
 
-    fout = fopen(fout_path, "wb");
-    check(fout, "Cannot open the output file.");
+    WriteDataOrDie(data, fout_path,
+                   kTotalHeaderSize + ptr_new_header->subchunk2_size);
 
-    return_value =
-        fwrite(buffer, 1, 44 + ptr_new_header->subchunk2_size, fout);
-    check(return_value == 44 + ptr_new_header->subchunk2_size,
-          "Cannot write the file.");
-
-    free(buffer);
+    /*
+     * Cleaning up
+     */
+    free(data->content);
+    free(data);
     free(ptr_original_header);
     free(ptr_new_header);
-    buffer = NULL;
-    ptr_original_header = NULL;
-    ptr_new_header = NULL;
 
-    fclose(fout);
 #ifdef __DEBUG__
     printf("Original Number of Samples:\t%llu\n",
            ptr_original_header->num_samples);
@@ -132,5 +105,13 @@ main(int argc, char **argv) {
     return EXIT_SUCCESS;
 
   error:
-    return EXIT_FAILURE;
+    if (data->content)
+        free(data->content);
+    if (data)
+        free(data);
+    if (ptr_original_header)
+        free(ptr_original_header);
+    if (ptr_new_header)
+        free(ptr_new_header);
+    abort();
 }

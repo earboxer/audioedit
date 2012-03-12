@@ -42,7 +42,7 @@ uint32_t        target_num_samples = 0;
 void            usage(void);
 
 void
-ParseArgumentsOrDie(int argc, char **argv) {
+ParseArgumentsOrDie(int argc, char *argv[]) {
     int             c;
 
     while ((c = getopt(argc, argv, "i:o:b:e:")) != -1) {
@@ -64,21 +64,19 @@ ParseArgumentsOrDie(int argc, char **argv) {
                                               NULL, 10);
             break;
         case '?':
-            usage();
         default:
-            goto error;
+            usage();
         }
     }
     argc -= optind;
     argv += optind;
 
-    check((begin_flag ^ end_flag) == 1, "-b is incompitible with -e.");
+    check((begin_flag ^ end_flag) == 1,
+          "You must specify either -b or -e.");
     check(fout_path != NULL && fin_path != NULL, "No path is specified.");
     return;
 
   error:
-    fputs("The input is ill-formed. The program is now exiting.\n",
-          stderr);
     exit(EXIT_FAILURE);
 }
 
