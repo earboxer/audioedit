@@ -41,7 +41,7 @@ CC              := gcc
 CXX             := g++
 
 # ------------  compiler flags  ------------------------------------------------
-DEBUG_CFLAGS    := -Wall -std=gnu99 -pedantic -O0 -g
+DEBUG_CFLAGS    := -Wall -ansi -pedantic-errors -O0 -g
 RELEASE_CFLAGS  := -Wall -std=gnu99 -pedantic -O3
 
 # ------------  linker flags  --------------------------------------------------
@@ -68,7 +68,7 @@ endif
 GLOBAL_INC_DIR  =
 
 # ------------  private include directories  -----------------------------------
-LOCAL_INC_DIR   = $(HOME)/include
+LOCAL_INC_DIR   =
 
 # ------------  system libraries  (e.g. -lm )  ---------------------------------
 SYS_LIBS        = -lm
@@ -80,7 +80,7 @@ GLOBAL_LIB_DIR  =
 GLOBAL_LIBS     =
 
 # ------------  private library directories  -----------------------------------
-LOCAL_LIB_DIR   = $(HOME)/lib
+LOCAL_LIB_DIR   =
 
 # ------------  private libraries  (e.g. libxyz.a )  ---------------------------
 LOCAL_LIBS      =

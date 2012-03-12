@@ -36,7 +36,6 @@
 #include <errno.h>
 #include <stdint.h>
 
-#define __DEBUG__
 
 extern char    *fin_path;
 extern char    *fout_path;
@@ -52,7 +51,7 @@ main(int argc, char **argv) {
     FILE           *fin, *fout;
     int64_t         fin_size;
     char           *buffer;
-    size_t          result;
+    size_t          return_value;
     uint32_t        fout_num_samples;
     WavHeader      *ptr_original_header, *ptr_new_header;
 
@@ -71,10 +70,10 @@ main(int argc, char **argv) {
     buffer = (char *) malloc(fin_size);
     check_mem(buffer);
 
-    result = fread(buffer, 1, fin_size, fin);
-    check(result == fin_size, "Cannot read the entire file");
+    return_value = fread(buffer, 1, fin_size, fin);
+    check(return_value == fin_size, "Cannot read the entire file");
     /*
-     * Content is already copied to memory. No need to use the input file. 
+     * Content is already copied to memory. No need to use the input file.
      */
     fclose(fin);
 
@@ -95,29 +94,32 @@ main(int argc, char **argv) {
         goto error;
     }
 
-
     ptr_new_header =
         ConstructHeader(ptr_original_header, fout_num_samples);
 
     /*
-     * Adjust header 
+     * Adjust header
      */
     memcpy(buffer + kChunkSizeOffset, &(ptr_new_header->chunk_size), 4);
     memcpy(buffer + kSubchunk2SizeOffset,
            &(ptr_new_header->subchunk2_size), 4);
 
     fout = fopen(fout_path, "wb");
-    check(fout != NULL, "Cannot open the output file.");
+    check(fout, "Cannot open the output file.");
 
-    result = fwrite(buffer, 1, 44 + ptr_new_header->subchunk2_size, fout);
-    check(result == 44 + ptr_new_header->subchunk2_size,
+    return_value =
+        fwrite(buffer, 1, 44 + ptr_new_header->subchunk2_size, fout);
+    check(return_value == 44 + ptr_new_header->subchunk2_size,
           "Cannot write the file.");
 
     free(buffer);
     free(ptr_original_header);
     free(ptr_new_header);
-    fclose(fout);
+    buffer = NULL;
+    ptr_original_header = NULL;
+    ptr_new_header = NULL;
 
+    fclose(fout);
 #ifdef __DEBUG__
     printf("Original Number of Samples:\t%llu\n",
            ptr_original_header->num_samples);
