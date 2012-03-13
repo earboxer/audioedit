@@ -29,6 +29,11 @@
 
 # WAVE Editor
 
+## WARNING
+
+This project is under heavy construction. I may commit every hour.
+
+
 ## Build
 ```
 make clean

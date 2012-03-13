@@ -29,17 +29,17 @@
 #include <stdint.h>
 
 typedef struct Data {
-        uint64_t size;
-        uint64_t data_offset;
-        char *content;
+    uint64_t        size;
+    uint64_t        data_offset;
+    char           *content;
 } Data;
 
-Data *CopyDataFromFileOrDie(const char *fin_path);
+Data           *CopyDataFromFileOrDie(const char *fin_path);
 
-void SetData(Data * data, void *new_data, const char size,
-             const uint64_t start_address);
+void            SetData(Data * data, void *new_data, const char size,
+                        const uint64_t start_address);
 
-void WriteDataOrDie(const Data * data, const char *fout_path,
-                    const uint64_t size, int is_appended);
+void            WriteDataOrDie(const Data * data, const char *fout_path,
+                               const uint64_t size, int is_appended);
 
 #endif                          /* DATA_H_ */

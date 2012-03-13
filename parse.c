@@ -25,82 +25,108 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "dbg.h"
+#include "parse.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdint.h>
+/*
+ * Global variables 
+ */
+char           *fin_path[MAX_NUM_INPUTFILES] = { NULL };
+char           *fout_path = NULL;
 
-/* Global variables */
-char *fin_path = NULL, *fout_path = NULL;
+int             begin_flag = 0;
 
-int begin_flag = 0;
+int             end_flag = 0;
 
-int end_flag = 0;
+uint32_t        target_num_samples = 0;
 
-uint32_t target_num_samples = 0;
+int             trim_flag = 0;
 
-int duplicate_flag = 0;
+int             merge_flag = 0;
 
-/* Function prototypes */
-void usage(void);
+/*
+ * Function prototypes 
+ */
+void            usage(void);
 
-void ParseArgumentsOrDie(int argc, char *argv[])
+void
+ParseArgumentsOrDie(int argc, char *argv[])
 {
-        int c;
+    int             c;
+    char          **fin;
 
-        while ((c = getopt(argc, argv, "i:o:b:e:d:")) != -1) {
-                switch (c) {
-                case 'i':
-                        fin_path = optarg;
-                        break;
-                case 'o':
-                        fout_path = optarg;
-                        break;
-                case 'b':
-                        begin_flag = 1;
-                        target_num_samples = (int)strtol(optarg, (char **)
-                                                         NULL, 10);
-                        break;
-                case 'e':
-                        end_flag = 1;
-                        target_num_samples = (int)strtol(optarg, (char **)
-                                                         NULL, 10);
-                        break;
-                case 'd':
-                        duplicate_flag = 1;
-                        break;
-                case '?':
-                        // Fall through
-                default:
-                        usage();
-                }
+    while ((c = getopt(argc, argv, "io:b:e:d:tm")) != -1) {
+        switch (c) {
+        case 'i':
+            for (fin = fin_path; optind < argc && argv[optind][0] != '-';
+                 fin++, optind++) {
+                *fin = argv[optind];
+            }
+            break;
+        case 'o':
+            fout_path = optarg;
+            break;
+        case 'b':
+            if (argv[optind - 2][0] == '-' && argv[optind - 2][1] == 't') {
+
+                begin_flag = 1;
+                target_num_samples = (int) strtol(optarg, (char **)
+                                                  NULL, 10);
+                break;
+            }
+            goto error;
+        case 'e':
+            if (argv[optind - 2][0] == '-' && argv[optind - 2][1] == 't') {
+
+                end_flag = 1;
+                target_num_samples = (int) strtol(optarg, (char **)
+                                                  NULL, 10);
+                break;
+            }
+            goto error;
+        case 'm':
+            merge_flag = 1;
+            break;
+        case 't':
+            trim_flag = 1;
+            break;
+        case '?':
+            // Fall through
+        default:
+            goto error;
         }
-        argv += optind;
+    }
+    argv += optind;
 
-        check((begin_flag ^ end_flag) == 1,
-              "You must specify either -b or -e.");
-        check(fout_path != NULL && fin_path != NULL, "No path is specified.");
-        return;
+    check((begin_flag ^ end_flag) == 1,
+          "You must specify either -b or -e.");
+    check(fout_path != NULL
+          && fin_path[0] != NULL, "No path is specified.");
+    return;
 
- error:
-        abort();
+  error:
+    usage();
+    exit(EXIT_FAILURE);
 }
 
-void usage(void)
+void
+usage(void)
 {
-        fputs("OPTIONS\n"
-              "    -help     "
-              "display the command line options\n"
-              "    -version  "
-              "display the version number\n"
-              "    -tb n     "
-              "trim n samples from the beginning for the audio clip\n"
-              "    -te m     "
-              "trim m samples off the end of the audio clip\n"
-              "    -i file   "
-              "provide the input file name\n"
-              "    -o file   "
-              "provide the output file name(overwriting an existing file)\n",
-              stderr);
+    fputs("OPTIONS\n"
+          "    -help     "
+          "display the command line options\n"
+          "    -version  "
+          "display the version number\n"
+          "    -tb n     "
+          "trim n samples from the beginning for the audio clip\n"
+          "    -te m     "
+          "trim m samples off the end of the audio clip\n"
+          "    -i file   "
+          "provide the input file name\n"
+          "    -o file   "
+          "provide the output file name(overwriting an existing file)\n",
+          stderr);
 }
