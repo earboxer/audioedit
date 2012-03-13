@@ -97,15 +97,24 @@ SetData(Data * data, void *new_data, const char write_size,
  * Aborts upon failure.
  */
 void
-WriteDataOrDie(const Data * data, const char *fout_path, const uint64_t size)
+WriteDataOrDie(const Data * data, const char *fout_path, const uint64_t size,
+               int is_appended)
 {
         FILE *fout;
         size_t return_value;
 
-        fout = fopen(fout_path, "wb");
+        if (is_appended) {
+                fout = fopen(fout_path, "ab");
+        } else {
+                fout = fopen(fout_path, "wb");
+        }
         check(fout != NULL, "Cannot open the output file: %s", fout_path);
 
-        return_value = fwrite(data->content, 1, size, fout);
+        if (is_appended == 0) {
+                return_value = fwrite(data->content + 44, 1, size, fout);
+        } else {
+                return_value = fwrite(data->content, 1, size, fout);
+        }
         check(return_value == size, "Cannot write the file: %s", fout_path);
 
         fclose(fout);

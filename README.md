@@ -1,3 +1,4 @@
+```
 /*-
  * Copyright (c) 2012, Meitian Huang
  * All rights reserved.
@@ -24,22 +25,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef DATA_H_
-#define DATA_H_
-#include <stdint.h>
+```
 
-typedef struct Data {
-        uint64_t size;
-        uint64_t data_offset;
-        char *content;
-} Data;
+# WAVE Editor
 
-Data *CopyDataFromFileOrDie(const char *fin_path);
+## Build
+```
+make clean
+make
+```
 
-void SetData(Data * data, void *new_data, const char size,
-             const uint64_t start_address);
+## Usage
+```
+OPTIONS
+    -help     display the command line options
+    -version  display the version number
+    -tb n     trim n samples from the beginning for the audio clip
+    -te m     trim m samples off the end of the audio clip
+    -i file   provide the input file name
+    -o file   provide the output file name(overwriting an existing file)
+```
 
-void WriteDataOrDie(const Data * data, const char *fout_path,
-                    const uint64_t size, int is_appended);
+## Features:
+* Trims a WAVE file either from the start of from the end.
+* Works on steoro files.
 
-#endif                          /* DATA_H_ */
+## Todo:
+* Dynamically search for the start of ``data'' chunk.
+* Merge two WAVE files.
+* Mix two WAVE files.

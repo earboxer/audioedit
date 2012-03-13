@@ -42,6 +42,7 @@ extern char *fout_path;
 extern int begin_flag;
 extern int end_flag;
 extern uint32_t target_num_samples;
+extern int duplicate_flag;
 
 #define __DEBUG__
 
@@ -85,20 +86,19 @@ int main(int argc, char **argv)
                 kSubchunk2SizeSize, kSubchunk2SizeOffset);
 
         WriteDataOrDie(data, fout_path,
-                       kTotalHeaderSize + ptr_new_header->subchunk2_size);
+                       kTotalHeaderSize + ptr_new_header->subchunk2_size, 0);
 
-        WavHeader *test_header = ConstructMergedHeader(ptr_original_header, ptr_original_header);
-        SetData(data, (void *) &(test_header->chunk_size), kChunkSizeSize,
-                        kChunkSizeOffset);
-        SetData(data, (void *) &(test_header->subchunk2_size),
-                        kSubchunk2SizeSize, kSubchunk2SizeOffset);
-         FILE *test_file = fopen("test2.wav", "wb");
-        check(test_file != NULL, "cannot open test wav");
-        fwrite(data->content, 1, data->size, test_file);
-        fwrite(data->content+44, 1, ptr_original_header->subchunk2_size, test_file);
+        WavHeader *test_header =
+            ConstructMergedHeader(ptr_original_header, ptr_original_header);
+        SetData(data, (void *)&(test_header->chunk_size), kChunkSizeSize,
+                kChunkSizeOffset);
+        SetData(data, (void *)&(test_header->subchunk2_size),
+                kSubchunk2SizeSize, kSubchunk2SizeOffset);
 
-        fclose(test_file);
-
+        WriteDataOrDie(data, "test2.wav", ptr_original_header->chunk_size + 8,
+                       0);
+        WriteDataOrDie(data, "test2.wav", ptr_original_header->subchunk2_size,
+                       1);
 
 #ifdef __DEBUG__
         printf("Original Number of Samples:\t%llu\n",
@@ -130,4 +130,8 @@ int main(int argc, char **argv)
         if (ptr_new_header)
                 free(ptr_new_header);
         abort();
+}
+
+void Trim(void) {
+
 }

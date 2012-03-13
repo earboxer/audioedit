@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <stdint.h>
 
+/* Global variables */
 char *fin_path = NULL, *fout_path = NULL;
 
 int begin_flag = 0;
@@ -39,13 +40,16 @@ int end_flag = 0;
 
 uint32_t target_num_samples = 0;
 
+int duplicate_flag = 0;
+
+/* Function prototypes */
 void usage(void);
 
 void ParseArgumentsOrDie(int argc, char *argv[])
 {
         int c;
 
-        while ((c = getopt(argc, argv, "i:o:b:e:")) != -1) {
+        while ((c = getopt(argc, argv, "i:o:b:e:d:")) != -1) {
                 switch (c) {
                 case 'i':
                         fin_path = optarg;
@@ -63,12 +67,15 @@ void ParseArgumentsOrDie(int argc, char *argv[])
                         target_num_samples = (int)strtol(optarg, (char **)
                                                          NULL, 10);
                         break;
+                case 'd':
+                        duplicate_flag = 1;
+                        break;
                 case '?':
+                        // Fall through
                 default:
                         usage();
                 }
         }
-        argc -= optind;
         argv += optind;
 
         check((begin_flag ^ end_flag) == 1,
