@@ -37,11 +37,11 @@ EXECUTABLE      := main
 SOURCES         := main.c parse.c file.c data.c
 
 # ------------  compiler  ------------------------------------------------------
-CC              := gcc
+CC              := clang
 CXX             := g++
 
 # ------------  compiler flags  ------------------------------------------------
-DEBUG_CFLAGS    := -Wall -std=gnu99 -pedantic-errors -O0 -g
+DEBUG_CFLAGS    := -Wall -Wextra -std=c99 -pedantic -O0 -g -Wstrict-prototypes -Wshadow #-Werror
 RELEASE_CFLAGS  := -Wall -std=gnu99 -pedantic -O3
 
 # ------------  linker flags  --------------------------------------------------

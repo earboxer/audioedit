@@ -42,12 +42,12 @@
 /*
  * Sizes
  */
-#define kChunkSizeSize           4
-#define kNumChannelsSize         2
-#define kSampleRateSize          4
-#define kBitPerSampleSize        2
-#define kSubchunk2SizeSize       4      /* Not a typo */
-#define kTotalHeaderSize         44
+#define kChunkSizeSize          4
+#define kNumChannelsSize        2
+#define kSampleRateSize         4
+#define kBitPerSampleSize       2
+#define kSubchunk2SizeSize      4       /* Not a typo */
+#define kTotalHeaderSize        44
 
 typedef struct WavHeader {
     uint32_t        chunk_size;
@@ -56,7 +56,7 @@ typedef struct WavHeader {
     uint16_t        bit_per_sample;
     uint32_t        subchunk2_size;
     uint64_t        num_samples;
-    uint32_t        length_in_second;
+    float           length_in_second;
 } WavHeader;
 
 WavHeader      *InitialHeader(const char *buffer);

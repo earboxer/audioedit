@@ -28,8 +28,9 @@
 #define DATA_H_
 #include <stdint.h>
 
-typedef struct _Data {
+typedef struct Data {
     uint64_t        size;
+    uint64_t        data_offset;
     char           *content;
 } Data;
 

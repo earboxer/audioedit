@@ -37,20 +37,23 @@
 #include <errno.h>
 #include <stdint.h>
 
-
 extern char    *fin_path;
 extern char    *fout_path;
 extern int      begin_flag;
 extern int      end_flag;
 extern uint32_t target_num_samples;
 
+#define __DEBUG__
+
 /*
  * This program will trim canonical WAVE files
  */
 int
-main(int argc, char **argv) {
+main(int argc, char **argv)
+{
     uint32_t        fout_num_samples;
-    WavHeader      *ptr_original_header, *ptr_new_header;
+    WavHeader      *ptr_original_header,
+                   *ptr_new_header;
     Data           *data;
 
     ParseArgumentsOrDie(argc, argv);
@@ -60,7 +63,8 @@ main(int argc, char **argv) {
     ptr_original_header = InitialHeader(data->content);
 
     check(target_num_samples <= ptr_original_header->num_samples,
-          "The specified number of samples is not legal.");
+          "The specified number \"%ld\" of samples is not legal.",
+          (long) target_num_samples);
 
     if (begin_flag) {
         fout_num_samples = target_num_samples;
@@ -85,6 +89,16 @@ main(int argc, char **argv) {
     WriteDataOrDie(data, fout_path,
                    kTotalHeaderSize + ptr_new_header->subchunk2_size);
 
+#ifdef __DEBUG__
+    printf("Original Number of Samples:\t%llu\n",
+           ptr_original_header->num_samples);
+    printf("Original Length in Second:\t%.1f\n",
+           ptr_original_header->length_in_second);
+    printf("Current Number of Samples:\t%d\n", fout_num_samples);
+    printf("Current Length in Second:\t%.1f\n",
+           ptr_new_header->length_in_second);
+#endif
+
     /*
      * Cleaning up
      */
@@ -93,15 +107,6 @@ main(int argc, char **argv) {
     free(ptr_original_header);
     free(ptr_new_header);
 
-#ifdef __DEBUG__
-    printf("Original Number of Samples:\t%llu\n",
-           ptr_original_header->num_samples);
-    printf("Original Length in Second:\t%u\n",
-           ptr_original_header->length_in_second);
-    printf("Current Number of Samples:\t%d\n", fout_num_samples);
-    printf("Current Length in Second:\t%u\n",
-           ptr_new_header->length_in_second);
-#endif
     return EXIT_SUCCESS;
 
   error:

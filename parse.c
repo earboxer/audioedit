@@ -31,7 +31,8 @@
 #include <unistd.h>
 #include <stdint.h>
 
-char           *fin_path = NULL, *fout_path = NULL;
+char           *fin_path = NULL,
+    *fout_path = NULL;
 
 int             begin_flag = 0;
 
@@ -42,7 +43,8 @@ uint32_t        target_num_samples = 0;
 void            usage(void);
 
 void
-ParseArgumentsOrDie(int argc, char *argv[]) {
+ParseArgumentsOrDie(int argc, char *argv[])
+{
     int             c;
 
     while ((c = getopt(argc, argv, "i:o:b:e:")) != -1) {
@@ -77,11 +79,12 @@ ParseArgumentsOrDie(int argc, char *argv[]) {
     return;
 
   error:
-    exit(EXIT_FAILURE);
+    abort();
 }
 
 void
-usage(void) {
+usage(void)
+{
     fputs("OPTIONS\n"
           "    -help     "
           "display the command line options\n"

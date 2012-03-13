@@ -35,8 +35,9 @@
 void            CalculateLengthInSecond(WavHeader * header);
 
 WavHeader      *
-InitialHeader(const char *buffer) {
-    WavHeader      *header = (WavHeader *) malloc(sizeof(WavHeader));
+InitialHeader(const char *buffer)
+{
+    WavHeader      *header = (WavHeader *) malloc(sizeof(*header));
     check_mem(header);
 
     memcpy(&(header->chunk_size), buffer + kChunkSizeOffset,
@@ -57,20 +58,20 @@ InitialHeader(const char *buffer) {
     CalculateLengthInSecond(header);
     return header;
   error:
-    if (header) {
+    if (header)
         free(header);
-    }
     abort();
 }
 
 WavHeader      *
 ConstructHeader(const WavHeader * original_header,
-                uint64_t target_num_samples) {
+                uint64_t target_num_samples)
+{
     WavHeader      *new_header;
-    new_header = (WavHeader *) malloc(sizeof(WavHeader));
+    new_header = (WavHeader *) malloc(sizeof(*new_header));
     check_mem(new_header);
 
-    memcpy(new_header, original_header, sizeof(WavHeader));
+    memcpy(new_header, original_header, sizeof(*new_header));
 
     /*
      * Adjust the header
@@ -84,14 +85,15 @@ ConstructHeader(const WavHeader * original_header,
 
     return new_header;
   error:
-    if (new_header) {
+    if (new_header)
         free(new_header);
-    }
     abort();
 }
 
 void
-CalculateLengthInSecond(WavHeader * header) {
-    header->length_in_second = header->num_samples / header->num_channels /
+CalculateLengthInSecond(WavHeader * header)
+{
+    header->length_in_second =
+        (float) header->num_samples / header->num_channels /
         header->sample_rate;
 }
