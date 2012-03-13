@@ -110,7 +110,7 @@ WriteDataOrDie(const Data * data, const char *fout_path, const uint64_t size,
         }
         check(fout != NULL, "Cannot open the output file: %s", fout_path);
 
-        if (is_appended == 0) {
+        if (is_appended) {
                 return_value = fwrite(data->content + 44, 1, size, fout);
         } else {
                 return_value = fwrite(data->content, 1, size, fout);

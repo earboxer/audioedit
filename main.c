@@ -44,21 +44,33 @@ extern int end_flag;
 extern uint32_t target_num_samples;
 extern int duplicate_flag;
 
-#define __DEBUG__
+void Trim();
+void Merge(const char *first_fin_path, const char *second_fin_path,
+           const char *fout_path);
 
 /*
  * This program will trim canonical WAVE files
  */
 int main(int argc, char **argv)
 {
-        uint32_t fout_num_samples;
-        WavHeader *ptr_original_header, *ptr_new_header;
-        Data *data;
-
         ParseArgumentsOrDie(argc, argv);
 
-        data = CopyDataFromFileOrDie(fin_path);
+        Trim();
+        Merge(fin_path, fin_path, "12.wav");
 
+        return EXIT_SUCCESS;
+}
+
+/*
+ * Trims the specified WAV file.
+ */
+void Trim(void)
+{
+        Data *data;
+        WavHeader *ptr_original_header, *ptr_new_header;
+        uint32_t fout_num_samples;
+
+        data = CopyDataFromFileOrDie(fin_path);
         ptr_original_header = InitialHeader(data->content);
 
         check(target_num_samples <= ptr_original_header->num_samples,
@@ -88,37 +100,11 @@ int main(int argc, char **argv)
         WriteDataOrDie(data, fout_path,
                        kTotalHeaderSize + ptr_new_header->subchunk2_size, 0);
 
-        WavHeader *test_header =
-            ConstructMergedHeader(ptr_original_header, ptr_original_header);
-        SetData(data, (void *)&(test_header->chunk_size), kChunkSizeSize,
-                kChunkSizeOffset);
-        SetData(data, (void *)&(test_header->subchunk2_size),
-                kSubchunk2SizeSize, kSubchunk2SizeOffset);
-
-        WriteDataOrDie(data, "test2.wav", ptr_original_header->chunk_size + 8,
-                       0);
-        WriteDataOrDie(data, "test2.wav", ptr_original_header->subchunk2_size,
-                       1);
-
-#ifdef __DEBUG__
-        printf("Original Number of Samples:\t%llu\n",
-               ptr_original_header->num_samples);
-        printf("Original Length in Second:\t%.1f\n",
-               ptr_original_header->length_in_second);
-        printf("Current Number of Samples:\t%d\n", fout_num_samples);
-        printf("Current Length in Second:\t%.1f\n",
-               ptr_new_header->length_in_second);
-#endif
-
-        /*
-         * Cleaning up
-         */
         free(data->content);
         free(data);
         free(ptr_original_header);
         free(ptr_new_header);
-
-        return EXIT_SUCCESS;
+        return;
 
  error:
         if (data->content)
@@ -132,6 +118,40 @@ int main(int argc, char **argv)
         abort();
 }
 
-void Trim(void) {
+/*
+ * Merges two WAV files into one.
+ */
+void Merge(const char *first_fin_path, const char *second_fin_path,
+           const char *fout_path)
+{
+        Data *first_fin_data, *second_fin_data;
+        WavHeader *first_fin_header, *second_fin_header, *fout_header;
 
+        first_fin_data = CopyDataFromFileOrDie(first_fin_path);
+        second_fin_data = CopyDataFromFileOrDie(second_fin_path);
+
+        first_fin_header = InitialHeader(first_fin_data->content);
+        second_fin_header = InitialHeader(second_fin_data->content);
+
+        fout_header =
+            ConstructMergedHeader(first_fin_header, second_fin_header);
+        SetData(first_fin_data, (void *)&(fout_header->chunk_size),
+                kChunkSizeSize, kChunkSizeOffset);
+        SetData(first_fin_data, (void *)&(fout_header->subchunk2_size),
+                kSubchunk2SizeSize, kSubchunk2SizeOffset);
+
+        WriteDataOrDie(first_fin_data, fout_path,
+                       first_fin_header->chunk_size + 8, 0);
+        WriteDataOrDie(second_fin_data, fout_path,
+                       second_fin_header->subchunk2_size, 1);
+
+        /* Clean up */
+        free(first_fin_data->content);
+        free(first_fin_data);
+        free(second_fin_data->content);
+        free(second_fin_data);
+
+        free(first_fin_header);
+        free(second_fin_header);
+        free(fout_header);
 }

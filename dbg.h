@@ -23,7 +23,7 @@
 
 #define sentinel(M, ...)  { log_err(M, ##__VA_ARGS__); errno=0; goto error; }
 
-#define check_mem(A) check((A), "Out of memory. Cannot allocate memory for %s.", #A)
+#define check_mem(A) check((A), "Out of memory. Cannot allocate memory.")
 
 #define check_debug(A, M, ...) if(!(A)) { debug(M, ##__VA_ARGS__); errno=0; goto error; }
 
