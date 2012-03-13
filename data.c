@@ -37,46 +37,45 @@
  * Returns a pointer to the content.
  * Aborts the program upon failures.
  */
-Data           *
-CopyDataFromFileOrDie(const char *fin_path)
+Data *CopyDataFromFileOrDie(const char *fin_path)
 {
-    Data           *data;
-    FILE           *fin;
-    size_t          return_value;
+        Data *data;
+        FILE *fin;
+        size_t return_value;
 
-    data = (Data *) malloc(sizeof(*data));
-    check_mem(data);
+        data = (Data *) malloc(sizeof(*data));
+        check_mem(data);
 
-    fin = fopen(fin_path, "rb");
-    check(fin != NULL, "Cannot open the input file: %s", fin_path);
+        fin = fopen(fin_path, "rb");
+        check(fin != NULL, "Cannot open the input file: %s", fin_path);
 
-    /*
-     * Get the total size of the file.
-     */
-    (void) fseek(fin, 0, SEEK_END);
-    data->size = ftell(fin);
-    rewind(fin);
+        /*
+         * Get the total size of the file.
+         */
+        (void)fseek(fin, 0, SEEK_END);
+        data->size = ftell(fin);
+        rewind(fin);
 
-    data->content = (char *) malloc(data->size);
-    check_mem(data->content);
+        data->content = (char *)malloc(data->size);
+        check_mem(data->content);
 
-    return_value = fread(data->content, 1, data->size, fin);
-    check(return_value == data->size, "Cannot read the input file: %s",
-          fin_path);
-    /*
-     * Content is already copied to memory. No need to use the input file.
-     */
-    fclose(fin);
-    return data;
-
-  error:
-    if (fin)
+        return_value = fread(data->content, 1, data->size, fin);
+        check(return_value == data->size, "Cannot read the input file: %s",
+              fin_path);
+        /*
+         * Content is already copied to memory. No need to use the input file.
+         */
         fclose(fin);
-    if (data->content)
-        free(data->content);
-    if (data)
-        free(data);
-    abort();
+        return data;
+
+ error:
+        if (fin)
+                fclose(fin);
+        if (data->content)
+                free(data->content);
+        if (data)
+                free(data);
+        abort();
 }
 
 /*
@@ -86,11 +85,11 @@ void
 SetData(Data * data, void *new_data, const char write_size,
         const uint64_t start_address)
 {
-    check(write_size <= data->size, "Don't be silly");
-    memcpy((data->content) + start_address, new_data, write_size);
-    return;
-  error:
-    abort();
+        check(write_size <= data->size, "Don't be silly");
+        memcpy((data->content) + start_address, new_data, write_size);
+        return;
+ error:
+        abort();
 }
 
 /*
@@ -98,21 +97,20 @@ SetData(Data * data, void *new_data, const char write_size,
  * Aborts upon failure.
  */
 void
-WriteDataOrDie(const Data * data, const char *fout_path,
-               const uint64_t size)
+WriteDataOrDie(const Data * data, const char *fout_path, const uint64_t size)
 {
-    FILE           *fout;
-    size_t          return_value;
+        FILE *fout;
+        size_t return_value;
 
-    fout = fopen(fout_path, "wb");
-    check(fout != NULL, "Cannot open the output file: %s", fout_path);
+        fout = fopen(fout_path, "wb");
+        check(fout != NULL, "Cannot open the output file: %s", fout_path);
 
-    return_value = fwrite(data->content, 1, size, fout);
-    check(return_value == size, "Cannot write the file: %s", fout_path);
+        return_value = fwrite(data->content, 1, size, fout);
+        check(return_value == size, "Cannot write the file: %s", fout_path);
 
-    fclose(fout);
-    return;
+        fclose(fout);
+        return;
 
-  error:
-    abort();
+ error:
+        abort();
 }

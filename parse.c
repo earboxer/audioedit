@@ -31,72 +31,69 @@
 #include <unistd.h>
 #include <stdint.h>
 
-char           *fin_path = NULL,
-    *fout_path = NULL;
+char *fin_path = NULL, *fout_path = NULL;
 
-int             begin_flag = 0;
+int begin_flag = 0;
 
-int             end_flag = 0;
+int end_flag = 0;
 
-uint32_t        target_num_samples = 0;
+uint32_t target_num_samples = 0;
 
-void            usage(void);
+void usage(void);
 
-void
-ParseArgumentsOrDie(int argc, char *argv[])
+void ParseArgumentsOrDie(int argc, char *argv[])
 {
-    int             c;
+        int c;
 
-    while ((c = getopt(argc, argv, "i:o:b:e:")) != -1) {
-        switch (c) {
-        case 'i':
-            fin_path = optarg;
-            break;
-        case 'o':
-            fout_path = optarg;
-            break;
-        case 'b':
-            begin_flag = 1;
-            target_num_samples = (int) strtol(optarg, (char **)
-                                              NULL, 10);
-            break;
-        case 'e':
-            end_flag = 1;
-            target_num_samples = (int) strtol(optarg, (char **)
-                                              NULL, 10);
-            break;
-        case '?':
-        default:
-            usage();
+        while ((c = getopt(argc, argv, "i:o:b:e:")) != -1) {
+                switch (c) {
+                case 'i':
+                        fin_path = optarg;
+                        break;
+                case 'o':
+                        fout_path = optarg;
+                        break;
+                case 'b':
+                        begin_flag = 1;
+                        target_num_samples = (int)strtol(optarg, (char **)
+                                                         NULL, 10);
+                        break;
+                case 'e':
+                        end_flag = 1;
+                        target_num_samples = (int)strtol(optarg, (char **)
+                                                         NULL, 10);
+                        break;
+                case '?':
+                default:
+                        usage();
+                }
         }
-    }
-    argc -= optind;
-    argv += optind;
+        argc -= optind;
+        argv += optind;
 
-    check((begin_flag ^ end_flag) == 1,
-          "You must specify either -b or -e.");
-    check(fout_path != NULL && fin_path != NULL, "No path is specified.");
-    return;
+        check((begin_flag ^ end_flag) == 1,
+              "You must specify either -b or -e.");
+        check(fout_path != NULL && fin_path != NULL, "No path is specified.");
+        return;
 
-  error:
-    abort();
+ error:
+        abort();
 }
 
-void
-usage(void)
+void usage(void)
 {
-    fputs("OPTIONS\n"
-          "    -help     "
-          "display the command line options\n"
-          "    -version  "
-          "display the version number\n"
-          "    -tb n     "
-          "trim n samples from the beginning for the audio clip\n"
-          "    -te m     "
-          "trim m samples off the end of the audio clip\n"
-          "    -i file   "
-          "provide the input file name\n"
-          "    -o file   "
-          "provide the output file name(overwriting an existing file)\n",
-          stderr);
+        fputs("OPTIONS\n"
+              "    -help     "
+              "display the command line options\n"
+              "    -version  "
+              "display the version number\n"
+              "    -tb n     "
+              "trim n samples from the beginning for the audio clip\n"
+              "    -te m     "
+              "trim m samples off the end of the audio clip\n"
+              "    -i file   "
+              "provide the input file name\n"
+              "    -o file   "
+              "provide the output file name(overwriting an existing file)\n",
+              stderr);
 }

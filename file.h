@@ -50,18 +50,20 @@
 #define kTotalHeaderSize        44
 
 typedef struct WavHeader {
-    uint32_t        chunk_size;
-    uint16_t        num_channels;
-    uint32_t        sample_rate;
-    uint16_t        bit_per_sample;
-    uint32_t        subchunk2_size;
-    uint64_t        num_samples;
-    float           length_in_second;
+        uint32_t chunk_size;
+        uint16_t num_channels;
+        uint32_t sample_rate;
+        uint16_t bit_per_sample;
+        uint32_t subchunk2_size;
+        uint64_t num_samples;
+        float length_in_second;
 } WavHeader;
 
-WavHeader      *InitialHeader(const char *buffer);
+WavHeader *InitialHeader(const char *buffer);
 
-WavHeader      *ConstructHeader(const WavHeader * header,
-                                uint64_t new_num_samples);
+WavHeader *ConstructTrimedHeader(const WavHeader * header,
+                                 uint64_t new_num_samples);
 
+WavHeader *ConstructMergedHeader(const WavHeader * first_header,
+                                 const WavHeader * second_header);
 #endif                          /* FILE_H_ */

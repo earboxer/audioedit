@@ -27,6 +27,6 @@
 #ifndef PARSE_H_
 #define PARSE_H_
 
-void            ParseArgumentsOrDie(int argc, char **argv);
+void ParseArgumentsOrDie(int argc, char **argv);
 
 #endif                          /* PARSE_H_ */

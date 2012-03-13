@@ -32,68 +32,88 @@
 #include <stdlib.h>
 #include <string.h>
 
-void            CalculateLengthInSecond(WavHeader * header);
+void CalculateLengthInSecond(WavHeader * header);
 
-WavHeader      *
-InitialHeader(const char *buffer)
+WavHeader *InitialHeader(const char *buffer)
 {
-    WavHeader      *header = (WavHeader *) malloc(sizeof(*header));
-    check_mem(header);
+        WavHeader *header = (WavHeader *) malloc(sizeof(*header));
+        check_mem(header);
 
-    memcpy(&(header->chunk_size), buffer + kChunkSizeOffset,
-           kChunkSizeSize);
-    memcpy(&(header->num_channels), buffer + kNumChannelsOffset,
-           kNumChannelsSize);
-    memcpy(&(header->sample_rate), buffer + kSampleRateOffset,
-           kSampleRateSize);
-    memcpy(&(header->bit_per_sample), buffer + kBitPerSampleOffset,
-           kBitPerSampleSize);
-    memcpy(&(header->subchunk2_size), buffer + kSubchunk2SizeOffset,
-           kSubchunk2SizeSize);
+        memcpy(&(header->chunk_size), buffer + kChunkSizeOffset,
+               kChunkSizeSize);
+        memcpy(&(header->num_channels), buffer + kNumChannelsOffset,
+               kNumChannelsSize);
+        memcpy(&(header->sample_rate), buffer + kSampleRateOffset,
+               kSampleRateSize);
+        memcpy(&(header->bit_per_sample), buffer + kBitPerSampleOffset,
+               kBitPerSampleSize);
+        memcpy(&(header->subchunk2_size), buffer + kSubchunk2SizeOffset,
+               kSubchunk2SizeSize);
 
-    header->num_samples =
-        header->subchunk2_size * 8 / header->num_channels /
-        header->bit_per_sample;
+        header->num_samples =
+            header->subchunk2_size * 8 / header->num_channels /
+            header->bit_per_sample;
 
-    CalculateLengthInSecond(header);
-    return header;
-  error:
-    if (header)
-        free(header);
-    abort();
+        CalculateLengthInSecond(header);
+        return header;
+ error:
+        if (header)
+                free(header);
+        abort();
 }
 
-WavHeader      *
-ConstructHeader(const WavHeader * original_header,
-                uint64_t target_num_samples)
+WavHeader *ConstructTrimedHeader(const WavHeader * original_header,
+                                 uint64_t target_num_samples)
 {
-    WavHeader      *new_header;
-    new_header = (WavHeader *) malloc(sizeof(*new_header));
-    check_mem(new_header);
+        WavHeader *new_header;
+        new_header = (WavHeader *) malloc(sizeof(*new_header));
+        check_mem(new_header);
 
-    memcpy(new_header, original_header, sizeof(*new_header));
+        memcpy(new_header, original_header, sizeof(*new_header));
 
-    /*
-     * Adjust the header
-     */
-    new_header->subchunk2_size =
-        original_header->subchunk2_size / original_header->num_samples *
-        target_num_samples;
-    new_header->chunk_size = 36 + new_header->subchunk2_size;
-    new_header->num_samples = target_num_samples;
-    CalculateLengthInSecond(new_header);
+        /*
+         * Adjust the header
+         */
+        new_header->subchunk2_size =
+            original_header->subchunk2_size / original_header->num_samples *
+            target_num_samples;
+        new_header->chunk_size = 36 + new_header->subchunk2_size;
+        new_header->num_samples = target_num_samples;
+        CalculateLengthInSecond(new_header);
 
-    return new_header;
-  error:
-    if (new_header)
-        free(new_header);
-    abort();
+        return new_header;
+ error:
+        if (new_header)
+                free(new_header);
+        abort();
 }
 
-void
-CalculateLengthInSecond(WavHeader * header)
+WavHeader *ConstructMergedHeader(const WavHeader * first_header,
+                                 const WavHeader * second_header)
 {
-    header->length_in_second =
-        (float) header->num_samples / header->num_channels /
-        header->sample_rate;
+        WavHeader *new_header;
+        new_header = (WavHeader *) malloc(sizeof(*new_header));
+        check_mem(new_header);
+
+        memcpy(new_header, first_header, sizeof(*new_header));
+
+        new_header->subchunk2_size = first_header->subchunk2_size +
+            second_header->subchunk2_size;
+        new_header->chunk_size = 36 + new_header->subchunk2_size;
+        new_header->num_samples = first_header->num_samples +
+            second_header->num_samples;
+        CalculateLengthInSecond(new_header);
+
+        return new_header;
+ error:
+        if (new_header)
+                free(new_header);
+        abort();
+}
+
+void CalculateLengthInSecond(WavHeader * header)
+{
+        header->length_in_second =
+            (float)header->num_samples / header->num_channels /
+            header->sample_rate;
 }
