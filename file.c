@@ -57,6 +57,7 @@ InitialHeader(const char *buffer)
 
     CalculateLengthInSecond(header);
     return header;
+
   error:
     if (header)
         free(header);
@@ -67,8 +68,7 @@ WavHeader      *
 ConstructTrimedHeader(const WavHeader * original_header,
                       uint64_t target_num_samples)
 {
-    WavHeader      *new_header;
-    new_header = (WavHeader *) malloc(sizeof(*new_header));
+    WavHeader      *new_header = (WavHeader *) malloc(sizeof(*new_header));
     check_mem(new_header);
 
     memcpy(new_header, original_header, sizeof(*new_header));
@@ -94,8 +94,7 @@ WavHeader      *
 ConstructMergedHeader(const WavHeader * first_header,
                       const WavHeader * second_header)
 {
-    WavHeader      *new_header;
-    new_header = (WavHeader *) malloc(sizeof(*new_header));
+    WavHeader      *new_header = (WavHeader *) malloc(sizeof(*new_header));
     check_mem(new_header);
 
     memcpy(new_header, first_header, sizeof(*new_header));
@@ -108,6 +107,7 @@ ConstructMergedHeader(const WavHeader * first_header,
     CalculateLengthInSecond(new_header);
 
     return new_header;
+
   error:
     if (new_header)
         free(new_header);

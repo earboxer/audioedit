@@ -56,8 +56,8 @@ main(int argc, char **argv)
 {
     ParseArgumentsOrDie(argc, argv);
 
-    //Trim();
-        Merge(fin_path[0], fin_path[1], fout_path);
+    // Trim();
+    Merge(fin_path[0], fin_path[1], fout_path);
     // Merge(fin_path, fin_path, "12.wav");
 
     return EXIT_SUCCESS;
@@ -69,9 +69,9 @@ main(int argc, char **argv)
 void
 Trim(void)
 {
-    Data           *data;
-    WavHeader      *ptr_original_header,
-                   *ptr_new_header;
+    Data           *data = NULL;
+    WavHeader      *ptr_original_header = NULL,
+                   *ptr_new_header = NULL;
     uint32_t        fout_num_samples;
 
     puts(fin_path[0]);
@@ -155,7 +155,7 @@ Merge(const char *first_fin_path, const char *second_fin_path,
                    second_fin_header->subchunk2_size, 1);
 
     /*
-     * Clean up 
+     * Clean up
      */
     free(first_fin_data->content);
     free(first_fin_data);

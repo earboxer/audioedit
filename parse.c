@@ -32,7 +32,7 @@
 #include <unistd.h>
 #include <stdint.h>
 /*
- * Global variables 
+ * Global variables
  */
 char           *fin_path[MAX_NUM_INPUTFILES] = { NULL };
 char           *fout_path = NULL;
@@ -48,18 +48,18 @@ int             trim_flag = 0;
 int             merge_flag = 0;
 
 /*
- * Function prototypes 
+ * Function prototypes
  */
 void            usage(void);
 
 void
 ParseArgumentsOrDie(int argc, char *argv[])
 {
-    int             c;
-    char          **fin;
+    int             ch;
+    char          **fin = NULL;
 
-    while ((c = getopt(argc, argv, "io:b:e:d:tm")) != -1) {
-        switch (c) {
+    while ((ch = getopt(argc, argv, "io:b:e:d:tm")) != -1) {
+        switch (ch) {
         case 'i':
             for (fin = fin_path; optind < argc && argv[optind][0] != '-';
                  fin++, optind++) {

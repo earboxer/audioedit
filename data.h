@@ -36,7 +36,7 @@ typedef struct Data {
 
 Data           *CopyDataFromFileOrDie(const char *fin_path);
 
-void            SetData(Data * data, void *new_data, const char size,
+void            SetData(Data * data, void *new_data, const unsigned char size,
                         const uint64_t start_address);
 
 void            WriteDataOrDie(const Data * data, const char *fout_path,

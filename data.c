@@ -40,7 +40,7 @@
 Data           *
 CopyDataFromFileOrDie(const char *fin_path)
 {
-    Data           *data;
+    Data           *data = NULL;
     FILE           *fin;
     size_t          return_value;
 
@@ -83,7 +83,7 @@ CopyDataFromFileOrDie(const char *fin_path)
  * A worker function of memcpy().
  */
 void
-SetData(Data * data, void *new_data, const char write_size,
+SetData(Data * data, void *new_data, const unsigned char write_size,
         const uint64_t start_address)
 {
     check(write_size <= data->size, "Don't be silly");
@@ -112,6 +112,9 @@ WriteDataOrDie(const Data * data, const char *fout_path,
     check(fout != NULL, "Cannot open the output file: %s", fout_path);
 
     if (is_appended) {
+        /*
+         * Skips header(44 bytes)
+         */
         return_value = fwrite(data->content + 44, 1, size, fout);
     } else {
         return_value = fwrite(data->content, 1, size, fout);
@@ -122,5 +125,7 @@ WriteDataOrDie(const Data * data, const char *fout_path,
     return;
 
   error:
+    if (fout)
+        fclose(fout);
     abort();
 }
