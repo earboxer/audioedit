@@ -71,7 +71,7 @@ Trim(void)
 {
     Data           *data = NULL;
     WavHeader      *ptr_original_header = NULL,
-                   *ptr_new_header = NULL;
+        *ptr_new_header = NULL;
     uint32_t        fout_num_samples;
 
     puts(fin_path[0]);

@@ -209,6 +209,10 @@ memtest:
 	make
 	valgrind --leak-check=full --dsymutil=yes ./main -b 220480 -i trimends.wav -o test.wav
 
+tags:
+	rm -f tags
+	ctags -R .
+
 .PHONY: clean tarball zip indent memtest
 
 # ==============================================================================
