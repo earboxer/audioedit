@@ -34,7 +34,7 @@ PROFILE        := NO
 EXECUTABLE      := main
 
 # ------------  list of all source files  --------------------------------------
-SOURCES         := main.c parse.c file.c data.c
+SOURCES         := main.c parse.c file.c
 
 # ------------  compiler  ------------------------------------------------------
 CC              := clang

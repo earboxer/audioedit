@@ -34,34 +34,27 @@
 
 void            CalculateLengthInSecond(WavHeader * header);
 
-WavHeader      *
-InitialHeader(const char *buffer)
+void
+InitiateHeader(WavHeader * header)
 {
-    WavHeader      *header = (WavHeader *) malloc(sizeof(*header));
-    check_mem(header);
 
-    memcpy(&(header->chunk_size), buffer + kChunkSizeOffset,
+    memcpy(&(header->chunk_size), header->content + kChunkSizeOffset,
            kChunkSizeSize);
-    memcpy(&(header->num_channels), buffer + kNumChannelsOffset,
+    memcpy(&(header->num_channels), header->content + kNumChannelsOffset,
            kNumChannelsSize);
-    memcpy(&(header->sample_rate), buffer + kSampleRateOffset,
+    memcpy(&(header->sample_rate), header->content + kSampleRateOffset,
            kSampleRateSize);
-    memcpy(&(header->bit_per_sample), buffer + kBitPerSampleOffset,
-           kBitPerSampleSize);
-    memcpy(&(header->subchunk2_size), buffer + kSubchunk2SizeOffset,
-           kSubchunk2SizeSize);
+    memcpy(&(header->bit_per_sample),
+           header->content + kBitPerSampleOffset, kBitPerSampleSize);
+    memcpy(&(header->subchunk2_size),
+           header->content + kSubchunk2SizeOffset, kSubchunk2SizeSize);
 
     header->num_samples =
         header->subchunk2_size * 8 / header->num_channels /
         header->bit_per_sample;
 
     CalculateLengthInSecond(header);
-    return header;
-
-  error:
-    if (header)
-        free(header);
-    abort();
+    return;
 }
 
 WavHeader      *
@@ -106,6 +99,8 @@ ConstructMergedHeader(const WavHeader * first_header,
         second_header->num_samples;
     CalculateLengthInSecond(new_header);
 
+    new_header->content = NULL;
+
     return new_header;
 
   error:
@@ -120,4 +115,92 @@ CalculateLengthInSecond(WavHeader * header)
     header->length_in_second =
         (float) header->num_samples / header->num_channels /
         header->sample_rate;
+}
+
+
+WavHeader      *
+CopyDataFromFileOrDie(const char *fin_path)
+{
+    WavHeader      *data = NULL;
+    FILE           *fin;
+    size_t          return_value;
+
+    data = (WavHeader *) malloc(sizeof(*data));
+    check_mem(data);
+
+    fin = fopen(fin_path, "rb");
+    check(fin != NULL, "Cannot open the input file: %s", fin_path);
+
+    /*
+     * Get the total size of the file.
+     */
+    (void) fseek(fin, 0, SEEK_END);
+    data->file_size = ftell(fin);
+    rewind(fin);
+
+    data->content = (char *) malloc(data->file_size);
+    check_mem(data->content);
+
+    return_value = fread(data->content, 1, data->file_size, fin);
+    check(return_value == data->file_size,
+          "Cannot read the input file: %s", fin_path);
+    /*
+     * Content is already copied to memory. No need to use the input file.
+     */
+    fclose(fin);
+    InitiateHeader(data);
+    return data;
+
+  error:
+    if (fin)
+        fclose(fin);
+    if (data->content)
+        free(data->content);
+    if (data)
+        free(data);
+    abort();
+}
+
+
+void
+SetData(WavHeader * data, void *new_data, const unsigned char write_size,
+        const uint64_t start_address)
+{
+    check(write_size <= data->file_size, "Don't be silly");
+    memcpy((data->content) + start_address, new_data, write_size);
+    return;
+  error:
+    abort();
+}
+
+
+void
+WriteDataOrDie(const WavHeader * data, const char *fout_path,
+               const uint64_t size, int is_appended)
+{
+    FILE           *fout;
+    size_t          return_value;
+
+    if (is_appended) {
+        fout = fopen(fout_path, "ab");
+    } else {
+        fout = fopen(fout_path, "wb");
+    }
+    check(fout != NULL, "Cannot open the output file: %s", fout_path);
+
+    if (is_appended) {
+
+        return_value = fwrite(data->content + 44, 1, size, fout);
+    } else {
+        return_value = fwrite(data->content, 1, size, fout);
+    }
+    check(return_value == size, "Cannot write the file: %s", fout_path);
+
+    fclose(fout);
+    return;
+
+  error:
+    if (fout)
+        fclose(fout);
+    abort();
 }

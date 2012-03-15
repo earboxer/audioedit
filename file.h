@@ -57,13 +57,26 @@ typedef struct WavHeader {
     uint32_t        subchunk2_size;
     uint64_t        num_samples;
     float           length_in_second;
+    char           *content;
+    uint64_t        file_size;
 } WavHeader;
 
-WavHeader      *InitialHeader(const char *buffer);
+// void InitialHeader(WavHeader * header);
+
 
 WavHeader      *ConstructTrimedHeader(const WavHeader * header,
                                       uint64_t new_num_samples);
 
 WavHeader      *ConstructMergedHeader(const WavHeader * first_header,
                                       const WavHeader * second_header);
+
+WavHeader      *CopyDataFromFileOrDie(const char *fin_path);
+
+void            SetData(WavHeader * data, void *new_data,
+                        const unsigned char write_size,
+                        const uint64_t start_address);
+
+void            WriteDataOrDie(const WavHeader * data,
+                               const char *fout_path, const uint64_t size,
+                               int is_appended);
 #endif                          /* FILE_H_ */

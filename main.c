@@ -28,7 +28,7 @@
 #include "parse.h"
 #include "dbg.h"
 #include "file.h"
-#include "data.h"
+// #include "data.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -69,14 +69,13 @@ main(int argc, char **argv)
 void
 Trim(void)
 {
-    Data           *data = NULL;
+    // Data *data = NULL;
     WavHeader      *ptr_original_header = NULL,
         *ptr_new_header = NULL;
     uint32_t        fout_num_samples;
 
     puts(fin_path[0]);
-    data = CopyDataFromFileOrDie(fin_path[0]);
-    ptr_original_header = InitialHeader(data->content);
+    ptr_original_header = CopyDataFromFileOrDie(fin_path[0]);
 
     check(target_num_samples <= ptr_original_header->num_samples,
           "The specified number \"%ld\" of samples is not legal.",
@@ -97,29 +96,33 @@ Trim(void)
     /*
      * Adjust header
      */
-    SetData(data, (void *) &(ptr_new_header->chunk_size), kChunkSizeSize,
-            kChunkSizeOffset);
-    SetData(data, (void *) &(ptr_new_header->subchunk2_size),
+    SetData(ptr_new_header, (void *) &(ptr_new_header->chunk_size),
+            kChunkSizeSize, kChunkSizeOffset);
+    SetData(ptr_new_header, (void *) &(ptr_new_header->subchunk2_size),
             kSubchunk2SizeSize, kSubchunk2SizeOffset);
 
-    WriteDataOrDie(data, fout_path,
+    WriteDataOrDie(ptr_new_header, fout_path,
                    kTotalHeaderSize + ptr_new_header->subchunk2_size, 0);
 
-    free(data->content);
-    free(data);
+    free(ptr_original_header->content);
+    ptr_original_header->content = NULL;
     free(ptr_original_header);
+    ptr_original_header = NULL;
+    free(ptr_new_header->content);
+    ptr_new_header->content = NULL;
     free(ptr_new_header);
+    ptr_new_header = NULL;
     return;
 
   error:
-    if (data->content)
-        free(data->content);
-    if (data)
-        free(data);
-    if (ptr_original_header)
-        free(ptr_original_header);
+    if (ptr_new_header->content)
+        free(ptr_new_header->content);
     if (ptr_new_header)
         free(ptr_new_header);
+    if (ptr_original_header->content)
+        free(ptr_original_header);
+    if (ptr_original_header)
+        free(ptr_original_header);
     abort();
 }
 
@@ -130,39 +133,39 @@ void
 Merge(const char *first_fin_path, const char *second_fin_path,
       const char *fout_path)
 {
-    Data           *first_fin_data,
-                   *second_fin_data;
+
     WavHeader      *first_fin_header,
                    *second_fin_header,
                    *fout_header;
 
-    first_fin_data = CopyDataFromFileOrDie(first_fin_path);
-    second_fin_data = CopyDataFromFileOrDie(second_fin_path);
 
-    first_fin_header = InitialHeader(first_fin_data->content);
-    second_fin_header = InitialHeader(second_fin_data->content);
+    first_fin_header = CopyDataFromFileOrDie(first_fin_path);
+    second_fin_header = CopyDataFromFileOrDie(second_fin_path);
 
     fout_header =
         ConstructMergedHeader(first_fin_header, second_fin_header);
-    SetData(first_fin_data, (void *) &(fout_header->chunk_size),
+    SetData(first_fin_header, (void *) &(fout_header->chunk_size),
             kChunkSizeSize, kChunkSizeOffset);
-    SetData(first_fin_data, (void *) &(fout_header->subchunk2_size),
+    SetData(first_fin_header, (void *) &(fout_header->subchunk2_size),
             kSubchunk2SizeSize, kSubchunk2SizeOffset);
 
-    WriteDataOrDie(first_fin_data, fout_path,
+    WriteDataOrDie(first_fin_header, fout_path,
                    first_fin_header->chunk_size + 8, 0);
-    WriteDataOrDie(second_fin_data, fout_path,
+    WriteDataOrDie(second_fin_header, fout_path,
                    second_fin_header->subchunk2_size, 1);
 
     /*
      * Clean up
      */
-    free(first_fin_data->content);
-    free(first_fin_data);
-    free(second_fin_data->content);
-    free(second_fin_data);
-
+    free(first_fin_header->content);
+    first_fin_header->content = NULL;
     free(first_fin_header);
+    first_fin_header = NULL;
+    free(second_fin_header->content);
+    second_fin_header->content = NULL;
     free(second_fin_header);
+    second_fin_header = NULL;
+
     free(fout_header);
+    fout_header = NULL;
 }
