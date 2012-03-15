@@ -117,13 +117,17 @@ Trim(void)
   error:
     if (ptr_new_header->content)
         free(ptr_new_header->content);
+    ptr_new_header->content = NULL;
     if (ptr_new_header)
         free(ptr_new_header);
+    ptr_new_header = NULL;
     if (ptr_original_header->content)
         free(ptr_original_header);
+    ptr_original_header->content = NULL;
     if (ptr_original_header)
         free(ptr_original_header);
-    abort();
+    ptr_original_header = NULL;
+    exit(EXIT_FAILURE);
 }
 
 /*
@@ -137,7 +141,6 @@ Merge(const char *first_fin_path, const char *second_fin_path,
     WavHeader      *first_fin_header,
                    *second_fin_header,
                    *fout_header;
-
 
     first_fin_header = CopyDataFromFileOrDie(first_fin_path);
     second_fin_header = CopyDataFromFileOrDie(second_fin_path);

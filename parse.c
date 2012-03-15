@@ -35,6 +35,7 @@
  * Global variables
  */
 char           *fin_path[MAX_NUM_INPUTFILES] = { NULL };
+
 char           *fout_path = NULL;
 
 int             begin_flag = 0;
@@ -61,7 +62,8 @@ ParseArgumentsOrDie(int argc, char *argv[])
     while ((ch = getopt(argc, argv, "io:b:e:d:tm")) != -1) {
         switch (ch) {
         case 'i':
-            for (fin = fin_path; optind < argc && argv[optind][0] != '-';
+            for (fin = fin_path;
+                 optind < argc && argv[optind][0] != '-';
                  fin++, optind++) {
                 *fin = argv[optind];
             }

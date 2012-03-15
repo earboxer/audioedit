@@ -37,7 +37,6 @@ void            CalculateLengthInSecond(WavHeader * header);
 void
 InitiateHeader(WavHeader * header)
 {
-
     memcpy(&(header->chunk_size), header->content + kChunkSizeOffset,
            kChunkSizeSize);
     memcpy(&(header->num_channels), header->content + kNumChannelsOffset,
@@ -78,9 +77,13 @@ ConstructTrimedHeader(const WavHeader * original_header,
 
     return new_header;
   error:
+    if (new_header->content)
+        free(new_header->content);
+    new_header->content = NULL;
     if (new_header)
         free(new_header);
-    abort();
+    new_header = NULL;
+    exit(EXIT_FAILURE);
 }
 
 WavHeader      *
@@ -98,15 +101,18 @@ ConstructMergedHeader(const WavHeader * first_header,
     new_header->num_samples = first_header->num_samples +
         second_header->num_samples;
     CalculateLengthInSecond(new_header);
-
     new_header->content = NULL;
 
     return new_header;
 
   error:
+    if (new_header->content)
+        free(new_header->content);
+    new_header->content = NULL;
     if (new_header)
         free(new_header);
-    abort();
+    new_header = NULL;
+    exit(EXIT_FAILURE);
 }
 
 void
@@ -116,7 +122,6 @@ CalculateLengthInSecond(WavHeader * header)
         (float) header->num_samples / header->num_channels /
         header->sample_rate;
 }
-
 
 WavHeader      *
 CopyDataFromFileOrDie(const char *fin_path)
@@ -156,11 +161,12 @@ CopyDataFromFileOrDie(const char *fin_path)
         fclose(fin);
     if (data->content)
         free(data->content);
+    data->content = NULL;
     if (data)
         free(data);
-    abort();
+    data = NULL;
+    exit(EXIT_FAILURE);
 }
-
 
 void
 SetData(WavHeader * data, void *new_data, const unsigned char write_size,
@@ -170,9 +176,8 @@ SetData(WavHeader * data, void *new_data, const unsigned char write_size,
     memcpy((data->content) + start_address, new_data, write_size);
     return;
   error:
-    abort();
+    exit(EXIT_FAILURE);
 }
-
 
 void
 WriteDataOrDie(const WavHeader * data, const char *fout_path,
@@ -189,7 +194,6 @@ WriteDataOrDie(const WavHeader * data, const char *fout_path,
     check(fout != NULL, "Cannot open the output file: %s", fout_path);
 
     if (is_appended) {
-
         return_value = fwrite(data->content + 44, 1, size, fout);
     } else {
         return_value = fwrite(data->content, 1, size, fout);
@@ -202,5 +206,5 @@ WriteDataOrDie(const WavHeader * data, const char *fout_path,
   error:
     if (fout)
         fclose(fout);
-    abort();
+    exit(EXIT_FAILURE);
 }

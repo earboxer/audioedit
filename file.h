@@ -63,7 +63,6 @@ typedef struct WavHeader {
 
 // void InitialHeader(WavHeader * header);
 
-
 WavHeader      *ConstructTrimedHeader(const WavHeader * header,
                                       uint64_t new_num_samples);
 
