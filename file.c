@@ -159,6 +159,7 @@ CopyDataFromFileOrDie(const char *fin_path)
   error:
     if (fin)
         fclose(fin);
+    fin = NULL;
     if (data->content)
         free(data->content);
     data->content = NULL;
@@ -206,5 +207,6 @@ WriteDataOrDie(const WavHeader * data, const char *fout_path,
   error:
     if (fout)
         fclose(fout);
+    fout = NULL;
     exit(EXIT_FAILURE);
 }

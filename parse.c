@@ -73,22 +73,20 @@ ParseArgumentsOrDie(int argc, char *argv[])
             break;
         case 'b':
             if (argv[optind - 2][0] == '-' && argv[optind - 2][1] == 't') {
-
                 begin_flag = 1;
-                target_num_samples = (int) strtol(optarg, (char **)
-                                                  NULL, 10);
+                target_num_samples = (uint32_t) strtol(optarg, (char **)
+                                                       NULL, 10);
                 break;
-            }
-            goto error;
+            } else
+                goto error;
         case 'e':
             if (argv[optind - 2][0] == '-' && argv[optind - 2][1] == 't') {
-
                 end_flag = 1;
-                target_num_samples = (int) strtol(optarg, (char **)
-                                                  NULL, 10);
+                target_num_samples = (uint32_t) strtol(optarg, (char **)
+                                                       NULL, 10);
                 break;
-            }
-            goto error;
+            } else
+                goto error;
         case 'm':
             merge_flag = 1;
             break;
@@ -118,17 +116,11 @@ void
 usage(void)
 {
     fputs("OPTIONS\n"
-          "    -help     "
-          "display the command line options\n"
-          "    -version  "
-          "display the version number\n"
-          "    -tb n     "
-          "trim n samples from the beginning for the audio clip\n"
-          "    -te m     "
-          "trim m samples off the end of the audio clip\n"
-          "    -i file   "
-          "provide the input file name\n"
-          "    -o file   "
-          "provide the output file name(overwriting an existing file)\n",
+          "    -help     display the command line options\n"
+          "    -version  display the version number\n"
+          "    -tb n     trim n samples from the beginning for the audio clip\n"
+          "    -te m     trim m samples off the end of the audio clip\n"
+          "    -i file   provide the input file name\n"
+          "    -o file   provide the output file name(overwriting an existing file)\n",
           stderr);
 }
