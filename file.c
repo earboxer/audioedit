@@ -26,6 +26,7 @@
  */
 #include "file.h"
 #include "dbg.h"
+#include "utils.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -53,6 +54,7 @@ InitiateHeader(WavHeader * header)
         header->bit_per_sample;
 
     CalculateLengthInSecond(header);
+
     return;
 }
 
@@ -76,13 +78,10 @@ ConstructTrimedHeader(const WavHeader * original_header,
     CalculateLengthInSecond(new_header);
 
     return new_header;
+
   error:
-    if (new_header->content)
-        free(new_header->content);
-    new_header->content = NULL;
-    if (new_header)
-        free(new_header);
-    new_header = NULL;
+    FREEMEM_(new_header->content);
+    FREEMEM_(new_header);
     exit(EXIT_FAILURE);
 }
 
@@ -106,12 +105,8 @@ ConstructMergedHeader(const WavHeader * first_header,
     return new_header;
 
   error:
-    if (new_header->content)
-        free(new_header->content);
-    new_header->content = NULL;
-    if (new_header)
-        free(new_header);
-    new_header = NULL;
+    FREEMEM_(new_header->content);
+    FREEMEM_(new_header);
     exit(EXIT_FAILURE);
 }
 
@@ -152,20 +147,14 @@ CopyDataFromFileOrDie(const char *fin_path)
     /*
      * Content is already copied to memory. No need to use the input file.
      */
-    fclose(fin);
+    CLOSEFD_(fin);
     InitiateHeader(data);
     return data;
 
   error:
-    if (fin)
-        fclose(fin);
-    fin = NULL;
-    if (data->content)
-        free(data->content);
-    data->content = NULL;
-    if (data)
-        free(data);
-    data = NULL;
+    CLOSEFD_(fin);
+    FREEMEM_(data->content);
+    FREEMEM_(data);
     exit(EXIT_FAILURE);
 }
 
@@ -176,6 +165,7 @@ SetData(WavHeader * data, void *new_data, const unsigned char write_size,
     check(write_size <= data->file_size, "Don't be silly");
     memcpy((data->content) + start_address, new_data, write_size);
     return;
+
   error:
     exit(EXIT_FAILURE);
 }
@@ -187,26 +177,25 @@ WriteDataOrDie(const WavHeader * data, const char *fout_path,
     FILE           *fout;
     size_t          return_value;
 
-    if (is_appended) {
+    if (is_appended == 1) {
         fout = fopen(fout_path, "ab");
     } else {
         fout = fopen(fout_path, "wb");
     }
     check(fout != NULL, "Cannot open the output file: %s", fout_path);
 
-    if (is_appended) {
+    if (is_appended == 1) {
         return_value = fwrite(data->content + 44, 1, size, fout);
     } else {
         return_value = fwrite(data->content, 1, size, fout);
     }
     check(return_value == size, "Cannot write the file: %s", fout_path);
 
-    fclose(fout);
+    CLOSEFD_(fout);
+
     return;
 
   error:
-    if (fout)
-        fclose(fout);
-    fout = NULL;
+    CLOSEFD_(fout);
     exit(EXIT_FAILURE);
 }

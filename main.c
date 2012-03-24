@@ -28,7 +28,7 @@
 #include "parse.h"
 #include "dbg.h"
 #include "file.h"
-// #include "data.h"
+#include "utils.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,9 +42,10 @@ extern char    *fout_path;
 extern int      begin_flag;
 extern int      end_flag;
 extern uint32_t target_num_samples;
-extern int      duplicate_flag;
+extern int      trim_flag;
+extern int      merge_flag;
 
-void            Trim();
+void            Trim(const char *fin_path);
 void            Merge(const char *first_fin_path,
                       const char *second_fin_path, const char *fout_path);
 
@@ -56,9 +57,12 @@ main(int argc, char **argv)
 {
     ParseArgumentsOrDie(argc, argv);
 
-    // Trim();
-    Merge(fin_path[0], fin_path[1], fout_path);
-    // Merge(fin_path, fin_path, "12.wav");
+    if (merge_flag) {
+        Merge(fin_path[0], fin_path[1], fout_path);
+    }
+    if (trim_flag) {
+        Trim(fin_path[0]);
+    }
 
     return EXIT_SUCCESS;
 }
@@ -67,15 +71,13 @@ main(int argc, char **argv)
  * Trims the specified WAV file.
  */
 void
-Trim(void)
+Trim(const char *fin_path)
 {
-    // Data *data = NULL;
     WavHeader      *ptr_original_header = NULL,
         *ptr_new_header = NULL;
     uint32_t        fout_num_samples;
 
-    puts(fin_path[0]);
-    ptr_original_header = CopyDataFromFileOrDie(fin_path[0]);
+    ptr_original_header = CopyDataFromFileOrDie(fin_path);
 
     check(target_num_samples <= ptr_original_header->num_samples,
           "The specified number \"%ld\" of samples is not legal.",
@@ -93,6 +95,7 @@ Trim(void)
     ptr_new_header =
         ConstructTrimedHeader(ptr_original_header, fout_num_samples);
 
+
     /*
      * Adjust header
      */
@@ -104,29 +107,15 @@ Trim(void)
     WriteDataOrDie(ptr_new_header, fout_path,
                    kTotalHeaderSize + ptr_new_header->subchunk2_size, 0);
 
-    free(ptr_original_header->content);
-    ptr_original_header->content = NULL;
-    free(ptr_original_header);
-    ptr_original_header = NULL;
-    free(ptr_new_header->content);
-    ptr_new_header->content = NULL;
-    free(ptr_new_header);
-    ptr_new_header = NULL;
+    FREEMEM_(ptr_original_header->content);
+    FREEMEM_(ptr_original_header);
+    FREEMEM_(ptr_new_header);
     return;
 
   error:
-    if (ptr_new_header->content)
-        free(ptr_new_header->content);
-    ptr_new_header->content = NULL;
-    if (ptr_new_header)
-        free(ptr_new_header);
-    ptr_new_header = NULL;
-    if (ptr_original_header->content)
-        free(ptr_original_header);
-    ptr_original_header->content = NULL;
-    if (ptr_original_header)
-        free(ptr_original_header);
-    ptr_original_header = NULL;
+    FREEMEM_(ptr_original_header->content);
+    FREEMEM_(ptr_original_header);
+    FREEMEM_(ptr_new_header);
     exit(EXIT_FAILURE);
 }
 
@@ -160,15 +149,10 @@ Merge(const char *first_fin_path, const char *second_fin_path,
     /*
      * Clean up
      */
-    free(first_fin_header->content);
-    first_fin_header->content = NULL;
-    free(first_fin_header);
-    first_fin_header = NULL;
-    free(second_fin_header->content);
-    second_fin_header->content = NULL;
-    free(second_fin_header);
-    second_fin_header = NULL;
-
-    free(fout_header);
-    fout_header = NULL;
+    FREEMEM_(first_fin_header->content);
+    FREEMEM_(first_fin_header);
+    FREEMEM_(second_fin_header->content);
+    FREEMEM_(second_fin_header);
+    FREEMEM_(fout_header->content);
+    FREEMEM_(fout_header);
 }

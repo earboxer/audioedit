@@ -54,6 +54,10 @@ int             merge_flag = 0;
  */
 void            usage(void);
 
+
+/*
+ * Parses the command line arguments
+ */
 void
 ParseArgumentsOrDie(int argc, char *argv[])
 {
@@ -64,8 +68,8 @@ ParseArgumentsOrDie(int argc, char *argv[])
         switch (ch) {
         case 'i':
             for (fin = fin_path;
-                 optind < argc && argv[optind][0] != '-';
-                 fin++, optind++) {
+                 optind < argc && argv[optind][0] != '-'; fin++, optind++)
+            {
                 *fin = argv[optind];
             }
             break;
@@ -74,6 +78,7 @@ ParseArgumentsOrDie(int argc, char *argv[])
             break;
         case 'b':
             if (argv[optind - 2][0] == '-' && argv[optind - 2][1] == 't') {
+                trim_flag = 1;
                 begin_flag = 1;
                 target_num_samples = (uint32_t) strtol(optarg, (char **)
                                                        NULL, 10);
@@ -82,6 +87,7 @@ ParseArgumentsOrDie(int argc, char *argv[])
                 goto error;
         case 'e':
             if (argv[optind - 2][0] == '-' && argv[optind - 2][1] == 't') {
+                trim_flag = 1;
                 end_flag = 1;
                 target_num_samples = (uint32_t) strtol(optarg, (char **)
                                                        NULL, 10);
@@ -102,8 +108,12 @@ ParseArgumentsOrDie(int argc, char *argv[])
     }
     argv += optind;
 
-    check((begin_flag ^ end_flag) == 1,
-          "You must specify either -b or -e.");
+    check((merge_flag ^ trim_flag) == 1,
+          "You can only specify merge or trim");
+    if (trim_flag) {
+        check((begin_flag ^ end_flag) == 1,
+              "You must specify either -b or -e.");
+    }
     check(fout_path != NULL
           && fin_path[0] != NULL, "No path is specified.");
     return;
@@ -113,6 +123,10 @@ ParseArgumentsOrDie(int argc, char *argv[])
     exit(EXIT_FAILURE);
 }
 
+
+/*
+ * Prints out usage information. 
+ */
 void
 usage(void)
 {
