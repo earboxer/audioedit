@@ -104,8 +104,9 @@ Trim(const char *fin_path)
     SetData(ptr_new_header, (void *) &(ptr_new_header->subchunk2_size),
             kSubchunk2SizeSize, kSubchunk2SizeOffset);
 
-    WriteDataOrDie(ptr_new_header, fout_path,
-                   kTotalHeaderSize + ptr_new_header->subchunk2_size, 0);
+    WriteDataOrDie(ptr_new_header, fout_path, kTotalHeaderSize, 0);
+    WriteDataOrDie(ptr_new_header->content, fout_path,
+                   ptr_new_header->subchunk2_size, 1);
 
     FREEMEM_(ptr_original_header->content);
     FREEMEM_(ptr_original_header);
@@ -136,14 +137,11 @@ Merge(const char *first_fin_path, const char *second_fin_path,
 
     fout_header =
         ConstructMergedHeader(first_fin_header, second_fin_header);
-    SetData(first_fin_header, (void *) &(fout_header->chunk_size),
-            kChunkSizeSize, kChunkSizeOffset);
-    SetData(first_fin_header, (void *) &(fout_header->subchunk2_size),
-            kSubchunk2SizeSize, kSubchunk2SizeOffset);
 
-    WriteDataOrDie(first_fin_header, fout_path,
-                   first_fin_header->chunk_size + 8, 0);
-    WriteDataOrDie(second_fin_header, fout_path,
+    WriteDataOrDie(fout_header, fout_path, kTotalHeaderSize, 0);
+    WriteDataOrDie(first_fin_header->content, fout_path,
+                   first_fin_header->subchunk2_size, 1);
+    WriteDataOrDie(second_fin_header->content, fout_path,
                    second_fin_header->subchunk2_size, 1);
 
     /*
@@ -153,6 +151,5 @@ Merge(const char *first_fin_path, const char *second_fin_path,
     FREEMEM_(first_fin_header);
     FREEMEM_(second_fin_header->content);
     FREEMEM_(second_fin_header);
-    FREEMEM_(fout_header->content);
     FREEMEM_(fout_header);
 }

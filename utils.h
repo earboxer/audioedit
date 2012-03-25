@@ -24,10 +24,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef MEM_H_
-#define MEM_H_
+#ifndef UTILS_H_
+#define UTILS_H_
 
 #define FREEMEM_(A) if (A) { free(A); A = NULL;}
 #define CLOSEFD_(A) if (A) { fclose(A); A = NULL; }
+#define FREAD_CHECK(D, S, C) { check(fread(D, 1, C, S) == C, "Cannot read the input file."); }
+#define FWRITE_CHECK(D, S, C) { check(fwrite(D, 1, C, S) == C, "Cannot write the input file"); }
 
-#endif                          /* MEM_H_ */
+
+#endif                          /* UTILS_H_ */

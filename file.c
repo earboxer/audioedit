@@ -38,17 +38,6 @@ void            CalculateLengthInSecond(WavHeader * header);
 void
 InitiateHeader(WavHeader * header)
 {
-    memcpy(&(header->chunk_size), header->content + kChunkSizeOffset,
-           kChunkSizeSize);
-    memcpy(&(header->num_channels), header->content + kNumChannelsOffset,
-           kNumChannelsSize);
-    memcpy(&(header->sample_rate), header->content + kSampleRateOffset,
-           kSampleRateSize);
-    memcpy(&(header->bit_per_sample),
-           header->content + kBitPerSampleOffset, kBitPerSampleSize);
-    memcpy(&(header->subchunk2_size),
-           header->content + kSubchunk2SizeOffset, kSubchunk2SizeSize);
-
     header->num_samples =
         header->subchunk2_size * 8 / header->num_channels /
         header->bit_per_sample;
@@ -70,11 +59,11 @@ ConstructTrimedHeader(const WavHeader * original_header,
     /*
      * Adjust the header
      */
+    new_header->num_samples = target_num_samples;
     new_header->subchunk2_size =
         original_header->subchunk2_size / original_header->num_samples *
         target_num_samples;
     new_header->chunk_size = 36 + new_header->subchunk2_size;
-    new_header->num_samples = target_num_samples;
     CalculateLengthInSecond(new_header);
 
     return new_header;
@@ -100,7 +89,6 @@ ConstructMergedHeader(const WavHeader * first_header,
     new_header->num_samples = first_header->num_samples +
         second_header->num_samples;
     CalculateLengthInSecond(new_header);
-    new_header->content = NULL;
 
     return new_header;
 
@@ -121,40 +109,34 @@ CalculateLengthInSecond(WavHeader * header)
 WavHeader      *
 CopyDataFromFileOrDie(const char *fin_path)
 {
-    WavHeader      *data = NULL;
+    WavHeader      *header = NULL;
     FILE           *fin;
-    size_t          return_value;
 
-    data = (WavHeader *) malloc(sizeof(*data));
-    check_mem(data);
+    header = (WavHeader *) malloc(sizeof(*header));
+    check_mem(header);
 
     fin = fopen(fin_path, "rb");
     check(fin != NULL, "Cannot open the input file: %s", fin_path);
 
-    /*
-     * Get the total size of the file.
-     */
-    (void) fseek(fin, 0, SEEK_END);
-    data->file_size = ftell(fin);
-    rewind(fin);
+    FREAD_CHECK(header, fin, kTotalHeaderSize);
 
-    data->content = (char *) malloc(data->file_size);
-    check_mem(data->content);
 
-    return_value = fread(data->content, 1, data->file_size, fin);
-    check(return_value == data->file_size,
-          "Cannot read the input file: %s", fin_path);
+    header->content = (char *) malloc(header->subchunk2_size);
+    check_mem(header->content);
+
+    FREAD_CHECK(header->content, fin, header->subchunk2_size);
+
     /*
      * Content is already copied to memory. No need to use the input file.
      */
     CLOSEFD_(fin);
-    InitiateHeader(data);
-    return data;
+    InitiateHeader(header);
+    return header;
 
   error:
     CLOSEFD_(fin);
-    FREEMEM_(data->content);
-    FREEMEM_(data);
+    FREEMEM_(header->content);
+    FREEMEM_(header);
     exit(EXIT_FAILURE);
 }
 
@@ -162,20 +144,15 @@ void
 SetData(WavHeader * data, void *new_data, const unsigned char write_size,
         const uint64_t start_address)
 {
-    check(write_size <= data->file_size, "Don't be silly");
     memcpy((data->content) + start_address, new_data, write_size);
     return;
-
-  error:
-    exit(EXIT_FAILURE);
 }
 
 void
-WriteDataOrDie(const WavHeader * data, const char *fout_path,
+WriteDataOrDie(const void *data, const char *fout_path,
                const uint64_t size, int is_appended)
 {
     FILE           *fout;
-    size_t          return_value;
 
     if (is_appended == 1) {
         fout = fopen(fout_path, "ab");
@@ -184,12 +161,7 @@ WriteDataOrDie(const WavHeader * data, const char *fout_path,
     }
     check(fout != NULL, "Cannot open the output file: %s", fout_path);
 
-    if (is_appended == 1) {
-        return_value = fwrite(data->content + 44, 1, size, fout);
-    } else {
-        return_value = fwrite(data->content, 1, size, fout);
-    }
-    check(return_value == size, "Cannot write the file: %s", fout_path);
+    FWRITE_CHECK(data, fout, size);
 
     CLOSEFD_(fout);
 

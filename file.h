@@ -50,10 +50,18 @@
 #define kTotalHeaderSize        44
 
 typedef struct WavHeader {
+    uint32_t        chunk_id;
     uint32_t        chunk_size;
+    uint32_t        format;
+    uint32_t        subchunk1_id;
+    uint32_t        subchunk1_size;
+    uint16_t        audio_format;
     uint16_t        num_channels;
     uint32_t        sample_rate;
+    uint32_t        byte_rate;
+    uint16_t        block_align;
     uint16_t        bit_per_sample;
+    uint32_t        subchunk2_id;
     uint32_t        subchunk2_size;
     uint64_t        num_samples;
     float           length_in_second;
@@ -75,7 +83,7 @@ void            SetData(WavHeader * data, void *new_data,
                         const unsigned char write_size,
                         const uint64_t start_address);
 
-void            WriteDataOrDie(const WavHeader * data,
+void            WriteDataOrDie(const void *data,
                                const char *fout_path, const uint64_t size,
                                int is_appended);
 #endif                          /* FILE_H_ */
