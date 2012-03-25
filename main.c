@@ -95,15 +95,6 @@ Trim(const char *fin_path)
     ptr_new_header =
         ConstructTrimedHeader(ptr_original_header, fout_num_samples);
 
-
-    /*
-     * Adjust header
-     */
-    SetData(ptr_new_header, (void *) &(ptr_new_header->chunk_size),
-            kChunkSizeSize, kChunkSizeOffset);
-    SetData(ptr_new_header, (void *) &(ptr_new_header->subchunk2_size),
-            kSubchunk2SizeSize, kSubchunk2SizeOffset);
-
     WriteDataOrDie(ptr_new_header, fout_path, kTotalHeaderSize, 0);
     WriteDataOrDie(ptr_new_header->content, fout_path,
                    ptr_new_header->subchunk2_size, 1);

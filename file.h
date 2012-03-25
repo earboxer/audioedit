@@ -29,27 +29,23 @@
 
 #include <stdint.h>
 
-/*
- * Offsets
- */
-#define kChunkSizeOffset        4
-#define kNumChannelsOffset      22
-#define kSampleRateOffset       24
-#define kBitPerSampleOffset     34
-#define kSubchunk2SizeOffset    40
-#define kDataOffset             44
-
-/*
- * Sizes
- */
-#define kChunkSizeSize          4
-#define kNumChannelsSize        2
-#define kSampleRateSize         4
-#define kBitPerSampleSize       2
-#define kSubchunk2SizeSize      4       /* Not a typo */
 #define kTotalHeaderSize        44
 
 typedef struct WavHeader {
+    /*
+     * Wave file header fields.
+     * Total: 44 bytes.
+     * These fields will be directly read from the file.
+     */
+
+    /******************** WARNING ************************
+     * Memory alignment may cause huge problems. This    *
+     * approach is s**t in terms of portability. I did   *
+     * not notice this problem until I finished the code.*
+     * My original design (read the field one by one) is *
+     * much robust. However, I presume this will NOT be a*
+     * problem on MODERN computers.                      *
+     *****************************************************/
     uint32_t        chunk_id;
     uint32_t        chunk_size;
     uint32_t        format;
@@ -63,13 +59,14 @@ typedef struct WavHeader {
     uint16_t        bit_per_sample;
     uint32_t        subchunk2_id;
     uint32_t        subchunk2_size;
+    /*
+     * Extra fields.
+     */
     uint64_t        num_samples;
     float           length_in_second;
     char           *content;
-    uint64_t        file_size;
 } WavHeader;
 
-// void InitialHeader(WavHeader * header);
 
 WavHeader      *ConstructTrimedHeader(const WavHeader * header,
                                       uint64_t new_num_samples);
@@ -78,10 +75,6 @@ WavHeader      *ConstructMergedHeader(const WavHeader * first_header,
                                       const WavHeader * second_header);
 
 WavHeader      *CopyDataFromFileOrDie(const char *fin_path);
-
-void            SetData(WavHeader * data, void *new_data,
-                        const unsigned char write_size,
-                        const uint64_t start_address);
 
 void            WriteDataOrDie(const void *data,
                                const char *fout_path, const uint64_t size,

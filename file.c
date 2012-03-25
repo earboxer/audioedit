@@ -140,13 +140,11 @@ CopyDataFromFileOrDie(const char *fin_path)
     exit(EXIT_FAILURE);
 }
 
-void
-SetData(WavHeader * data, void *new_data, const unsigned char write_size,
-        const uint64_t start_address)
-{
-    memcpy((data->content) + start_address, new_data, write_size);
-    return;
-}
+/*
+ * void SetData(WavHeader * data, void *new_data, const unsigned char
+ * write_size, const uint64_t start_address) { memcpy((data->content) +
+ * start_address, new_data, write_size); return; } 
+ */
 
 void
 WriteDataOrDie(const void *data, const char *fout_path,
