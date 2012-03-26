@@ -37,11 +37,14 @@
 #include <errno.h>
 #include <stdint.h>
 
+#define __DEBUG__
+
 extern char    *fin_path[MAX_NUM_INPUTFILES];
 extern char    *fout_path;
 extern int      begin_flag;
 extern int      end_flag;
-extern uint32_t target_num_samples;
+extern uint32_t begin_num_samples_to_trim;
+extern uint32_t end_num_samples_to_trim;
 extern int      trim_flag;
 extern int      merge_flag;
 
@@ -79,23 +82,25 @@ Trim(const char *fin_path)
     ptr_original_header = CopyDataFromFileOrDie(fin_path);
     check_ptr(ptr_original_header);
 
-    check(target_num_samples <= ptr_original_header->num_samples,
+    check(begin_num_samples_to_trim + end_num_samples_to_trim <=
+          ptr_original_header->num_samples,
           "The specified number \"%ld\" of samples is not legal.",
-          (long) target_num_samples);
+          (long) begin_num_samples_to_trim + end_num_samples_to_trim);
 
 
     fout_num_samples =
-        ptr_original_header->num_samples - target_num_samples;
+        ptr_original_header->num_samples - begin_num_samples_to_trim -
+        end_num_samples_to_trim;
 
     ptr_new_header =
         ConstructTrimedHeader(ptr_original_header, fout_num_samples);
     check_ptr(ptr_new_header);
 
-    if (begin_flag) {
-        ptr_new_header->content +=
-            (ptr_original_header->subchunk2_size -
-             ptr_new_header->subchunk2_size);
-    }
+    ptr_new_header->content +=
+        (ptr_original_header->subchunk2_size -
+         ptr_new_header->subchunk2_size) * begin_num_samples_to_trim /
+        (begin_num_samples_to_trim + end_num_samples_to_trim);
+
 #ifdef __DEBUG__
     printf("original subchunk2size: %ld\n",
            (long) ptr_original_header->subchunk2_size);

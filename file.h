@@ -38,14 +38,14 @@ typedef struct WavHeader {
      * These fields will be directly read from the file.
      */
 
-    /******************** WARNING ************************
-     * Memory alignment may cause huge problems. This    *
-     * approach is s**t in terms of portability. I did   *
-     * not notice this problem until I finished the code.*
-     * My original design (read the field one by one) is *
-     * much robust. However, I presume this will NOT be a*
-     * problem on MODERN computers.                      *
-     *****************************************************/
+    /******************** WARNING *************************
+     * Memory alignment may cause huge problems. This     *
+     * approach is s**t in terms of portability. I did    *
+     * not notice this problem until I finished the code. *
+     * My original design (read the field one by one) is  *
+     * much robust. However, I presume this will NOT be a *
+     * problem on MODERN computers.                       *
+     ******************************************************/
     uint32_t        chunk_id;
     uint32_t        chunk_size;
     uint32_t        format;
@@ -65,18 +65,21 @@ typedef struct WavHeader {
     uint64_t        num_samples;
     float           length_in_second;
     char           *content;
-} WavHeader;
+}
+#ifdef __GNUC__
+__attribute__ ((__packed__))
+#endif
+WavHeader;
 
 
 WavHeader      *ConstructTrimedHeader(const WavHeader * header,
-                                      uint64_t new_num_samples);
+                                      const uint64_t new_num_samples);
 
 WavHeader      *ConstructMergedHeader(const WavHeader * first_header,
                                       const WavHeader * second_header);
 
 WavHeader      *CopyDataFromFileOrDie(const char *fin_path);
 
-void            WriteDataOrDie(const void *data,
-                               const char *fout_path, const uint64_t size,
-                               int is_appended);
+void            WriteDataOrDie(const void *data, const char *fout_path,
+                               const uint64_t size, const int is_appended);
 #endif                          /* FILE_H_ */

@@ -43,7 +43,8 @@ int             begin_flag = 0;
 
 int             end_flag = 0;
 
-uint32_t        target_num_samples = 0;
+uint32_t        begin_num_samples_to_trim = 0;
+uint32_t        end_num_samples_to_trim = 0;
 
 int             trim_flag = 0;
 
@@ -64,12 +65,11 @@ ParseArgumentsOrDie(int argc, char *argv[])
     int             ch;
     char          **fin = NULL;
 
-    while ((ch = getopt(argc, argv, "io:b:e:d:tm")) != -1) {
+    while ((ch = getopt(argc, argv, "io:b:e:tmhv")) != -1) {
         switch (ch) {
         case 'i':
-            for (fin = fin_path;
-                 optind < argc && argv[optind][0] != '-'; fin++, optind++)
-            {
+            for (fin = fin_path; optind < argc && argv[optind][0] != '-';
+                 fin++, optind++) {
                 *fin = argv[optind];
             }
             break;
@@ -79,27 +79,40 @@ ParseArgumentsOrDie(int argc, char *argv[])
         case 'b':
             if (argv[optind - 2][0] == '-' && argv[optind - 2][1] == 't') {
                 trim_flag = 1;
-                begin_flag = 1;
-                target_num_samples = (uint32_t) strtol(optarg, (char **)
-                                                       NULL, 10);
+                begin_num_samples_to_trim =
+                    (uint32_t) strtol(optarg, (char **) NULL, 10);
                 break;
-            } else
-                goto error;
+            }
+            goto error;
         case 'e':
             if (argv[optind - 2][0] == '-' && argv[optind - 2][1] == 't') {
                 trim_flag = 1;
-                end_flag = 1;
-                target_num_samples = (uint32_t) strtol(optarg, (char **)
-                                                       NULL, 10);
+                end_num_samples_to_trim =
+                    (uint32_t) strtol(optarg, (char **) NULL, 10);
                 break;
-            } else
-                goto error;
+            }
+            goto error;
         case 'm':
             merge_flag = 1;
             break;
         case 't':
-            trim_flag = 1;
+            /*
+             * Do nothing 
+             */
             break;
+        case 'v':
+            puts(VERSION);
+#ifdef __clang__
+            printf("Built at %s on %s, using clang %d.%d\n", __TIME__,
+                   __DATE__, __clang_major__, __clang_minor__);
+#elif __GNUC__
+            printf("Built at %s on %s, using GCC %d.%d\n", __TIME__,
+                   __DATE__, __GNUC__, __GNUC_MINOR__);
+#endif
+            exit(EXIT_SUCCESS);
+        case 'h':
+            usage();
+            exit(EXIT_SUCCESS);
         case '?':
             // Fall through
         default:
@@ -111,8 +124,9 @@ ParseArgumentsOrDie(int argc, char *argv[])
     check((merge_flag ^ trim_flag) == 1,
           "You can only specify merge or trim");
     if (trim_flag) {
-        check((begin_flag ^ end_flag) == 1,
-              "You must specify either -b or -e.");
+        check(begin_num_samples_to_trim != 0
+              || end_num_samples_to_trim != 0,
+              "You must specify either -b or -e, or both.");
     }
     check(fout_path != NULL
           && fin_path[0] != NULL, "No path is specified.");
@@ -131,11 +145,12 @@ void
 usage(void)
 {
     fputs("OPTIONS\n"
-          "    -help     display the command line options\n"
-          "    -version  display the version number\n"
-          "    -tb n     trim n samples from the beginning for the audio clip\n"
-          "    -te m     trim m samples off the end of the audio clip\n"
-          "    -i file   provide the input file name\n"
-          "    -o file   provide the output file name(overwriting an existing file)\n",
+          "    -h              display the command line options\n"
+          "    -v              display the version number\n"
+          "    -tb n           trim n samples from the beginning for the audio clip\n"
+          "    -te m           trim m samples off the end of the audio clip\n"
+          "    -a              append the input files."
+          "    -i file [,...]  provide the input file name\n"
+          "    -o file         provide the output file name(overwriting an existing file)\n",
           stderr);
 }

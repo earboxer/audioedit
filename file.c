@@ -33,24 +33,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-void            CalculateLengthInSecond(WavHeader * header);
-void            RainCheck(WavHeader * header);
+void            RainCheck(const WavHeader * header);
+static inline void InitiateHeader(WavHeader * header);
+static inline void CalculateLengthInSecond(WavHeader * header);
 
-void
-InitiateHeader(WavHeader * header)
-{
-    header->num_samples =
-        header->subchunk2_size * 8 / header->num_channels /
-        header->bit_per_sample;
 
-    CalculateLengthInSecond(header);
-
-    return;
-}
 
 WavHeader      *
 ConstructTrimedHeader(const WavHeader * original_header,
-                      uint64_t target_num_samples)
+                      const uint64_t target_num_samples)
 {
     WavHeader      *new_header = (WavHeader *) malloc(sizeof(*new_header));
     check_mem(new_header);
@@ -99,13 +90,6 @@ ConstructMergedHeader(const WavHeader * first_header,
     exit(EXIT_FAILURE);
 }
 
-void
-CalculateLengthInSecond(WavHeader * header)
-{
-    header->length_in_second =
-        (float) header->num_samples / header->num_channels /
-        header->sample_rate;
-}
 
 WavHeader      *
 CopyDataFromFileOrDie(const char *fin_path)
@@ -167,7 +151,7 @@ WriteDataOrDie(const void *data, const char *fout_path,
 }
 
 void
-RainCheck(WavHeader * header)
+RainCheck(const WavHeader * header)
 {
     char            id[5];
     id[4] = '\0';
@@ -190,4 +174,24 @@ RainCheck(WavHeader * header)
           " ****************************************************\n",
           stderr);
     exit(EXIT_FAILURE);
+}
+
+static inline void
+InitiateHeader(WavHeader * header)
+{
+    header->num_samples =
+        header->subchunk2_size * 8 / header->num_channels /
+        header->bit_per_sample;
+
+    CalculateLengthInSecond(header);
+
+    return;
+}
+
+static inline void
+CalculateLengthInSecond(WavHeader * header)
+{
+    header->length_in_second =
+        (float) header->num_samples / header->num_channels /
+        header->sample_rate;
 }

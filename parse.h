@@ -28,6 +28,7 @@
 #define PARSE_H_
 
 #define MAX_NUM_INPUTFILES 10
+#define VERSION "v0.1"
 void            ParseArgumentsOrDie(int argc, char **argv);
 
 #endif                          /* PARSE_H_ */
