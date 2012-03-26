@@ -59,8 +59,7 @@ main(int argc, char **argv)
 
     if (merge_flag) {
         Merge(fin_path[0], fin_path[1], fout_path);
-    }
-    if (trim_flag) {
+    } else if (trim_flag) {
         Trim(fin_path[0]);
     }
 
@@ -75,30 +74,42 @@ Trim(const char *fin_path)
 {
     WavHeader      *ptr_original_header = NULL,
         *ptr_new_header = NULL;
-    uint32_t        fout_num_samples;
+    uint64_t        fout_num_samples;
 
     ptr_original_header = CopyDataFromFileOrDie(fin_path);
+    check_ptr(ptr_original_header);
 
     check(target_num_samples <= ptr_original_header->num_samples,
           "The specified number \"%ld\" of samples is not legal.",
           (long) target_num_samples);
 
-    if (begin_flag) {
-        fout_num_samples = target_num_samples;
-    } else if (end_flag) {
-        fout_num_samples =
-            ptr_original_header->num_samples - target_num_samples;
-    } else {
-        goto error;
-    }
+
+    fout_num_samples =
+        ptr_original_header->num_samples - target_num_samples;
 
     ptr_new_header =
         ConstructTrimedHeader(ptr_original_header, fout_num_samples);
+    check_ptr(ptr_new_header);
+
+    if (begin_flag) {
+        ptr_new_header->content +=
+            (ptr_original_header->subchunk2_size -
+             ptr_new_header->subchunk2_size);
+    }
+#ifdef __DEBUG__
+    printf("original subchunk2size: %ld\n",
+           (long) ptr_original_header->subchunk2_size);
+    printf("new subchunk2size: %ld\n",
+           (long) ptr_new_header->subchunk2_size);
+#endif
 
     WriteDataOrDie(ptr_new_header, fout_path, kTotalHeaderSize, 0);
     WriteDataOrDie(ptr_new_header->content, fout_path,
                    ptr_new_header->subchunk2_size, 1);
 
+    /*
+     * Clean-up
+     */
     FREEMEM_(ptr_original_header->content);
     FREEMEM_(ptr_original_header);
     FREEMEM_(ptr_new_header);
@@ -124,10 +135,13 @@ Merge(const char *first_fin_path, const char *second_fin_path,
                    *fout_header;
 
     first_fin_header = CopyDataFromFileOrDie(first_fin_path);
+    check_ptr(first_fin_header);
     second_fin_header = CopyDataFromFileOrDie(second_fin_path);
+    check_ptr(second_fin_header);
 
     fout_header =
         ConstructMergedHeader(first_fin_header, second_fin_header);
+    check_ptr(fout_header);
 
     WriteDataOrDie(fout_header, fout_path, kTotalHeaderSize, 0);
     WriteDataOrDie(first_fin_header->content, fout_path,
@@ -138,6 +152,14 @@ Merge(const char *first_fin_path, const char *second_fin_path,
     /*
      * Clean up
      */
+    FREEMEM_(first_fin_header->content);
+    FREEMEM_(first_fin_header);
+    FREEMEM_(second_fin_header->content);
+    FREEMEM_(second_fin_header);
+    FREEMEM_(fout_header);
+    return;
+
+  error:
     FREEMEM_(first_fin_header->content);
     FREEMEM_(first_fin_header);
     FREEMEM_(second_fin_header->content);

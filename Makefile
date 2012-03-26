@@ -41,7 +41,7 @@ CC              := clang
 CXX             := g++
 
 # ------------  compiler flags  ------------------------------------------------
-DEBUG_CFLAGS    := -Wall -Wextra -std=c99 -O0 -g -Wstrict-prototypes -Werror #-pedantic Wshadow
+DEBUG_CFLAGS    := -Wall -Wextra -std=c99 -g -Wstrict-prototypes -Werror #-pedantic Wshadow
 RELEASE_CFLAGS  := -Wall -std=gnu99 -pedantic -O3
 
 # ------------  linker flags  --------------------------------------------------

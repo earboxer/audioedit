@@ -34,6 +34,7 @@
 #include <string.h>
 
 void            CalculateLengthInSecond(WavHeader * header);
+void            RainCheck(WavHeader * header);
 
 void
 InitiateHeader(WavHeader * header)
@@ -130,7 +131,9 @@ CopyDataFromFileOrDie(const char *fin_path)
      * Content is already copied to memory. No need to use the input file.
      */
     CLOSEFD_(fin);
+
     InitiateHeader(header);
+    RainCheck(header);
     return header;
 
   error:
@@ -140,32 +143,51 @@ CopyDataFromFileOrDie(const char *fin_path)
     exit(EXIT_FAILURE);
 }
 
-/*
- * void SetData(WavHeader * data, void *new_data, const unsigned char
- * write_size, const uint64_t start_address) { memcpy((data->content) +
- * start_address, new_data, write_size); return; } 
- */
-
 void
 WriteDataOrDie(const void *data, const char *fout_path,
                const uint64_t size, int is_appended)
 {
     FILE           *fout;
 
-    if (is_appended == 1) {
+    if (is_appended == 1)
         fout = fopen(fout_path, "ab");
-    } else {
+    else
         fout = fopen(fout_path, "wb");
-    }
+
     check(fout != NULL, "Cannot open the output file: %s", fout_path);
 
     FWRITE_CHECK(data, fout, size);
-
     CLOSEFD_(fout);
 
     return;
 
   error:
     CLOSEFD_(fout);
+    exit(EXIT_FAILURE);
+}
+
+void
+RainCheck(WavHeader * header)
+{
+    char            id[5];
+    id[4] = '\0';
+    memcpy(id, &(header->chunk_id), 4);
+    check((strcmp(id, "RIFF") == 0), "chunk_id");
+    memcpy(id, &(header->format), 4);
+    check((strcmp(id, "WAVE") == 0), "format");
+    memcpy(id, &(header->subchunk1_id), 4);
+    check((strcmp(id, "fmt ") == 0), "subchunk1_id");
+    memcpy(id, &(header->subchunk2_id), 4);
+    check((strcmp(id, "data") == 0), "subchunk2_id");
+
+    return;
+
+  error:
+    fputs(" ********************** ERROR ***********************\n"
+          " YOU are screwed. Either you supply an invalid audio \n"
+          " or you run this program on a wrong machine. Please  \n"
+          " check your input or/and read README.md\n"
+          " ****************************************************\n",
+          stderr);
     exit(EXIT_FAILURE);
 }
