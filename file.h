@@ -28,6 +28,7 @@
 #define FILE_H_
 
 #include <stdint.h>
+#include "utils.h"
 
 #define kTotalHeaderSize        44
 
@@ -61,25 +62,29 @@ typedef struct WavHeader {
     uint32_t        subchunk2_size;
     /*
      * Extra fields.
+     * Subchunk2Size == NumSamples * NumChannels * BitPerSample / 8
+     * NumChannels >= 1, BitPerSample >= 8
+     * Hence, Subchunk2Size >= NumSamples
      */
-    uint64_t        num_samples;
+    uint32_t        num_samples;
     float           length_in_second;
     char           *content;
 }
 #ifdef __GNUC__
 __attribute__ ((__packed__))
 #endif
-WavHeader;
+    WavHeader;
 
 
 WavHeader      *ConstructTrimedHeader(const WavHeader * header,
-                                      const uint64_t new_num_samples);
+                                      const uint32_t new_num_samples,
+                                      const uint32_t num_samples_to_skip);
 
 WavHeader      *ConstructMergedHeader(const WavHeader * first_header,
                                       const WavHeader * second_header);
 
 WavHeader      *CopyDataFromFileOrDie(const char *fin_path);
 
-void            WriteDataOrDie(const void *data, const char *fout_path,
+Status          WriteDataOrDie(const void *data, const char *fout_path,
                                const uint64_t size, const int is_appended);
 #endif                          /* FILE_H_ */

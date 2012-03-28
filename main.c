@@ -25,10 +25,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#define __DEBUG__
+
 #include "parse.h"
-#include "dbg.h"
 #include "file.h"
 #include "utils.h"
+#include "dbg.h"
+#include "play.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,20 +39,21 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdint.h>
-
-#define __DEBUG__
+#include <libgen.h>
 
 extern char    *fin_path[MAX_NUM_INPUTFILES];
 extern char    *fout_path;
-extern int      begin_flag;
-extern int      end_flag;
+// extern int begin_flag;
+// extern int end_flag;
 extern uint32_t begin_num_samples_to_trim;
 extern uint32_t end_num_samples_to_trim;
 extern int      trim_flag;
 extern int      merge_flag;
+extern int      play_flag;
+extern char    *fplay_path;
 
-void            Trim(const char *fin_path);
-void            Merge(const char *first_fin_path,
+static Status   Trim(const char *fin_path);
+static Status   Merge(const char *first_fin_path,
                       const char *second_fin_path, const char *fout_path);
 
 /*
@@ -58,102 +62,113 @@ void            Merge(const char *first_fin_path,
 int
 main(int argc, char **argv)
 {
-    ParseArgumentsOrDie(argc, argv);
+    check(ParseArguments(argc, argv) == SUCCESS,
+          "Cannot parse command line...");
 
-    if (merge_flag) {
-        Merge(fin_path[0], fin_path[1], fout_path);
-    } else if (trim_flag) {
-        Trim(fin_path[0]);
+    if (play_flag) {
+        check(Play(fplay_path) == SUCCESS, "Failed to play.");
     }
 
+    if (merge_flag) {
+        check(Merge(fin_path[0], fin_path[1], fout_path) == SUCCESS,
+              "Failed to merge");
+
+    }
+
+    if (trim_flag) {
+        check(Trim(fin_path[0]) == SUCCESS, "Failed to trim");
+    }
+
+
     return EXIT_SUCCESS;
+
+  error:
+    return EXIT_FAILURE;
 }
 
 /*
  * Trims the specified WAV file.
  */
-void
+Status
 Trim(const char *fin_path)
 {
+    puts(fin_path);
     WavHeader      *ptr_original_header = NULL,
         *ptr_new_header = NULL;
     uint64_t        fout_num_samples;
+    uint64_t        num_samples_to_trim =
+        begin_num_samples_to_trim + end_num_samples_to_trim;
 
     ptr_original_header = CopyDataFromFileOrDie(fin_path);
     check_ptr(ptr_original_header);
 
-    check(begin_num_samples_to_trim + end_num_samples_to_trim <=
-          ptr_original_header->num_samples,
-          "The specified number \"%ld\" of samples is not legal.",
-          (long) begin_num_samples_to_trim + end_num_samples_to_trim);
-
+    check(num_samples_to_trim < ptr_original_header->num_samples,
+          "The specified number \"%ld\" of samples is not valid.",
+          num_samples_to_trim);
 
     fout_num_samples =
-        ptr_original_header->num_samples - begin_num_samples_to_trim -
-        end_num_samples_to_trim;
+        ptr_original_header->num_samples - num_samples_to_trim;
 
     ptr_new_header =
-        ConstructTrimedHeader(ptr_original_header, fout_num_samples);
+        ConstructTrimedHeader(ptr_original_header, fout_num_samples,
+                              begin_num_samples_to_trim);
     check_ptr(ptr_new_header);
 
-    ptr_new_header->content +=
-        (ptr_original_header->subchunk2_size -
-         ptr_new_header->subchunk2_size) * begin_num_samples_to_trim /
-        (begin_num_samples_to_trim + end_num_samples_to_trim);
 
 #ifdef __DEBUG__
+    printf("%p %p\n", ptr_original_header->content,
+           ptr_new_header->content);
+    printf("%ld\n", (long) ptr_original_header->subchunk2_size);
+    printf("%ld\n", (long) begin_num_samples_to_trim);
     printf("original subchunk2size: %ld\n",
            (long) ptr_original_header->subchunk2_size);
     printf("new subchunk2size: %ld\n",
            (long) ptr_new_header->subchunk2_size);
 #endif
 
-    WriteDataOrDie(ptr_new_header, fout_path, kTotalHeaderSize, 0);
-    WriteDataOrDie(ptr_new_header->content, fout_path,
-                   ptr_new_header->subchunk2_size, 1);
-
+    if (WriteDataOrDie(ptr_new_header, fout_path, kTotalHeaderSize, 0) !=
+          SUCCESS)
+            goto error;
+    if (WriteDataOrDie (ptr_new_header->content, fout_path,
+           ptr_new_header->subchunk2_size, 1) != SUCCESS)
+            goto error;
     /*
      * Clean-up
      */
     FREEMEM_(ptr_original_header->content);
     FREEMEM_(ptr_original_header);
     FREEMEM_(ptr_new_header);
-    return;
-
+    return SUCCESS;
   error:
     FREEMEM_(ptr_original_header->content);
     FREEMEM_(ptr_original_header);
     FREEMEM_(ptr_new_header);
-    exit(EXIT_FAILURE);
+    return FAILURE;
 }
 
 /*
  * Merges two WAV files into one.
  */
-void
+Status
 Merge(const char *first_fin_path, const char *second_fin_path,
       const char *fout_path)
 {
 
-    WavHeader      *first_fin_header,
-                   *second_fin_header,
-                   *fout_header;
-
+    WavHeader      *first_fin_header = NULL,
+        *second_fin_header = NULL,
+        *fout_header = NULL;
     first_fin_header = CopyDataFromFileOrDie(first_fin_path);
     check_ptr(first_fin_header);
     second_fin_header = CopyDataFromFileOrDie(second_fin_path);
     check_ptr(second_fin_header);
-
     fout_header =
         ConstructMergedHeader(first_fin_header, second_fin_header);
     check_ptr(fout_header);
-
     WriteDataOrDie(fout_header, fout_path, kTotalHeaderSize, 0);
     WriteDataOrDie(first_fin_header->content, fout_path,
                    first_fin_header->subchunk2_size, 1);
     WriteDataOrDie(second_fin_header->content, fout_path,
                    second_fin_header->subchunk2_size, 1);
-
     /*
      * Clean up
      */
@@ -162,12 +177,12 @@ Merge(const char *first_fin_path, const char *second_fin_path,
     FREEMEM_(second_fin_header->content);
     FREEMEM_(second_fin_header);
     FREEMEM_(fout_header);
-    return;
-
+    return SUCCESS;
   error:
     FREEMEM_(first_fin_header->content);
     FREEMEM_(first_fin_header);
     FREEMEM_(second_fin_header->content);
     FREEMEM_(second_fin_header);
     FREEMEM_(fout_header);
+    return FAILURE;
 }

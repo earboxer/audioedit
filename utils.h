@@ -27,11 +27,26 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
+#include <stdio.h>
+#include <stdlib.h>
+
+#ifdef SUCCESS
+#undef SUCCESS
+#endif
+
+#ifdef FAILURE
+#undef FAILURE
+#endif
+
+typedef enum { SUCCESS, FAILURE } Status;
+
+/*
+ * Frequently used functions.
+ */
 #define FREEMEM_(A) if (A) { free(A); A = NULL;}
 #define CLOSEFD_(A) if (A) { fclose(A); A = NULL; }
-#define FREAD_CHECK(D, S, C) { check(fread(D, 1, C, S) == C, "Cannot read the input file."); }
-#define FWRITE_CHECK(D, S, C) { check(fwrite(D, 1, C, S) == C, "Cannot write the input file"); }
+#define FREAD_CHECK(D, S, C) { check(fread(D, C, 1, S) == 1, "Cannot read the input file."); }
+#define FWRITE_CHECK(D, S, C) { check(fwrite(D, C, 1, S) == 1, "Cannot write the input file"); }
 #define check_ptr(A) check( (A), "Invalid pointer received." )
-
 
 #endif                          /* UTILS_H_ */

@@ -1,7 +1,4 @@
 #include "wavplay.h"
-#include <stdio.h>
-#include <libgen.h>
-#include <string.h>
 #include <signal.h>
 
 static void

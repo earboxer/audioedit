@@ -34,14 +34,14 @@ PROFILE        := NO
 EXECUTABLE      := main
 
 # ------------  list of all source files  --------------------------------------
-SOURCES         := main.c parse.c file.c
+SOURCES         := main.c parse.c file.c wavplay.c play.c
 
 # ------------  compiler  ------------------------------------------------------
 CC              := clang
 CXX             := g++
 
 # ------------  compiler flags  ------------------------------------------------
-DEBUG_CFLAGS    := -Wall -Wextra -std=c99 -g -Wstrict-prototypes -Werror -Wpadded #-pedantic Wshadow
+DEBUG_CFLAGS    := -Wall -std=gnu99 -g -Wstrict-prototypes -Werror #-pedantic Wshadow Wextra 
 RELEASE_CFLAGS  := -Wall -std=gnu99 -pedantic -O3
 
 # ------------  linker flags  --------------------------------------------------
@@ -68,7 +68,7 @@ endif
 GLOBAL_INC_DIR  =
 
 # ------------  private include directories  -----------------------------------
-LOCAL_INC_DIR   =
+LOCAL_INC_DIR   = inc
 
 # ------------  system libraries  (e.g. -lm )  ---------------------------------
 SYS_LIBS        = -lm

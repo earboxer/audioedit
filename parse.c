@@ -26,48 +26,63 @@
  */
 #include "dbg.h"
 #include "parse.h"
+#include "utils.h"
 
-#include <stdio.h>
-#include <getopt.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <stdint.h>
+
 /*
  * Global variables
  */
-char           *fin_path[MAX_NUM_INPUTFILES] = { NULL };
 
 char           *fout_path = NULL;
 
-int             begin_flag = 0;
 
-int             end_flag = 0;
+int             play_flag = 0;
 
-uint32_t        begin_num_samples_to_trim = 0;
-uint32_t        end_num_samples_to_trim = 0;
+int             merge_flag = 0;
 
 int             trim_flag = 0;
 
-int             merge_flag = 0;
+uint32_t        begin_num_samples_to_trim = 0,
+    end_num_samples_to_trim = 0;
+
+char           *fin_path[MAX_NUM_INPUTFILES] = { NULL };
+
+char           *fplay_path = NULL;
 
 /*
  * Function prototypes
  */
-void            usage(void);
+static void     usage(void);
 
 
 /*
- * Parses the command line arguments
+ * Parses command line arguments.
+ * Returns the number of options.
  */
-void
-ParseArgumentsOrDie(int argc, char *argv[])
+Status
+ParseArguments(int argc, char *argv[])
 {
     int             ch;
     char          **fin = NULL;
 
-    while ((ch = getopt(argc, argv, "io:b:e:tmhv")) != -1) {
+    while ((ch = getopt(argc, argv, "p:io:b:e:tmhv")) != -1) {
         switch (ch) {
+        case 'p':
+            play_flag = 1;
+            fplay_path = optarg;
+            break;
         case 'i':
+            /*
+             * There may be many input files. getopt() cannot handle this
+             * situation. Hence, the command line should be manually processed.
+             * Put every separate token into the array until a token begins
+             * with '-' is seen.
+             */
             for (fin = fin_path; optind < argc && argv[optind][0] != '-';
                  fin++, optind++) {
                 *fin = argv[optind];
@@ -76,7 +91,18 @@ ParseArgumentsOrDie(int argc, char *argv[])
         case 'o':
             fout_path = optarg;
             break;
+        case 't':
+            /*
+             * Well, nothing is done here.
+             * This option is kept in order to meet the specification.
+             */
+            break;
         case 'b':
+            /*
+             * Only '-tb' is acceptable.
+             * Note: '-tb' will be recognised as '-t' plus '-b'. This code
+             * exploit this feature.
+             */
             if (argv[optind - 2][0] == '-' && argv[optind - 2][1] == 't') {
                 trim_flag = 1;
                 begin_num_samples_to_trim =
@@ -85,6 +111,9 @@ ParseArgumentsOrDie(int argc, char *argv[])
             }
             goto error;
         case 'e':
+            /*
+             * Same as '-b'.
+             */
             if (argv[optind - 2][0] == '-' && argv[optind - 2][1] == 't') {
                 trim_flag = 1;
                 end_num_samples_to_trim =
@@ -95,46 +124,43 @@ ParseArgumentsOrDie(int argc, char *argv[])
         case 'm':
             merge_flag = 1;
             break;
-        case 't':
-            /*
-             * Do nothing 
-             */
-            break;
         case 'v':
+            /*
+             * The specification requires '-version' as an option. Yet, it is
+             * not practical in this situation as '-version' will be broken
+             * into '-v', '-e', '-r', etc.
+             */
             puts(VERSION);
+            printf("Built at %s on %s", __TIME__, __DATE__);
 #ifdef __clang__
-            printf("Built at %s on %s, using clang %d.%d\n", __TIME__,
-                   __DATE__, __clang_major__, __clang_minor__);
+            printf(", using clang %d.%d", __clang_major__,
+                   __clang_minor__);
 #elif __GNUC__
-            printf("Built at %s on %s, using GCC %d.%d\n", __TIME__,
-                   __DATE__, __GNUC__, __GNUC_MINOR__);
+            printf(",using GCC %d.%d", __GNUC__, __GNUC_MINOR__);
 #endif
-            exit(EXIT_SUCCESS);
+            printf("\n");
+            exit(EXIT_SUCCESS); /* Exits the program. */
         case 'h':
             usage();
-            exit(EXIT_SUCCESS);
+            exit(EXIT_SUCCESS); /* Exits the program. */
         case '?':
             // Fall through
         default:
             goto error;
         }
     }
-    argv += optind;
 
-    check((merge_flag ^ trim_flag) == 1,
-          "You can only specify merge or trim");
-    if (trim_flag) {
-        check(begin_num_samples_to_trim != 0
-              || end_num_samples_to_trim != 0,
-              "You must specify either -b or -e, or both.");
-    }
-    check(fout_path != NULL
-          && fin_path[0] != NULL, "No path is specified.");
-    return;
+    check(play_flag + trim_flag + merge_flag == 1,
+          "You are too greedy. Please rerun with less options");
+
+    check(begin_num_samples_to_trim >= 0 && end_num_samples_to_trim >= 0,
+          "Sorry, I don't know what to do with a negative number of samples");
+
+    return SUCCESS;
 
   error:
     usage();
-    exit(EXIT_FAILURE);
+    return FAILURE;
 }
 
 

@@ -33,15 +33,16 @@
 #include <stdlib.h>
 #include <string.h>
 
-void            RainCheck(const WavHeader * header);
-static inline void InitiateHeader(WavHeader * header);
-static inline void CalculateLengthInSecond(WavHeader * header);
-
-
+static void     RainCheck(const WavHeader * header);
+static inline uint32_t CalculateNumSamples(const WavHeader * header);
+static inline float CalculateLengthInSecond(const WavHeader * header);
+static inline uint32_t CalculateOffset(const WavHeader * header,
+                                       const uint32_t num_samples_to_skip);
 
 WavHeader      *
 ConstructTrimedHeader(const WavHeader * original_header,
-                      const uint64_t target_num_samples)
+                      const uint32_t target_num_samples,
+                      const uint32_t begin_num_samples_to_skip)
 {
     WavHeader      *new_header = (WavHeader *) malloc(sizeof(*new_header));
     check_mem(new_header);
@@ -58,12 +59,16 @@ ConstructTrimedHeader(const WavHeader * original_header,
     new_header->chunk_size = 36 + new_header->subchunk2_size;
     CalculateLengthInSecond(new_header);
 
+    new_header->content =
+        original_header->content + CalculateOffset(original_header,
+                                                   begin_num_samples_to_skip);
     return new_header;
 
   error:
     FREEMEM_(new_header->content);
     FREEMEM_(new_header);
-    exit(EXIT_FAILURE);
+
+    return NULL;
 }
 
 WavHeader      *
@@ -87,7 +92,8 @@ ConstructMergedHeader(const WavHeader * first_header,
   error:
     FREEMEM_(new_header->content);
     FREEMEM_(new_header);
-    exit(EXIT_FAILURE);
+
+    return NULL;
 }
 
 
@@ -105,7 +111,6 @@ CopyDataFromFileOrDie(const char *fin_path)
 
     FREAD_CHECK(header, fin, kTotalHeaderSize);
 
-
     header->content = (char *) malloc(header->subchunk2_size);
     check_mem(header->content);
 
@@ -116,18 +121,22 @@ CopyDataFromFileOrDie(const char *fin_path)
      */
     CLOSEFD_(fin);
 
-    InitiateHeader(header);
     RainCheck(header);
+
+    header->num_samples = CalculateNumSamples(header);
+    header->length_in_second = CalculateLengthInSecond(header);
+
     return header;
 
   error:
     CLOSEFD_(fin);
     FREEMEM_(header->content);
     FREEMEM_(header);
-    exit(EXIT_FAILURE);
+
+    return NULL;
 }
 
-void
+Status
 WriteDataOrDie(const void *data, const char *fout_path,
                const uint64_t size, int is_appended)
 {
@@ -143,14 +152,15 @@ WriteDataOrDie(const void *data, const char *fout_path,
     FWRITE_CHECK(data, fout, size);
     CLOSEFD_(fout);
 
-    return;
+    return SUCCESS;
 
   error:
     CLOSEFD_(fout);
-    exit(EXIT_FAILURE);
+    fprintf(stderr, "Cannot write data to %s\n", fout_path);
+    return FAILURE;
 }
 
-void
+static void
 RainCheck(const WavHeader * header)
 {
     char            id[5];
@@ -176,22 +186,25 @@ RainCheck(const WavHeader * header)
     exit(EXIT_FAILURE);
 }
 
-static inline void
-InitiateHeader(WavHeader * header)
+static inline   uint32_t
+CalculateNumSamples(const WavHeader * header)
 {
-    header->num_samples =
-        header->subchunk2_size * 8 / header->num_channels /
-        header->bit_per_sample;
-
-    CalculateLengthInSecond(header);
-
-    return;
+    return
+        header->subchunk2_size / header->num_channels
+        / header->bit_per_sample * 8;
 }
 
-static inline void
-CalculateLengthInSecond(WavHeader * header)
+static inline float
+CalculateLengthInSecond(const WavHeader * header)
 {
-    header->length_in_second =
-        (float) header->num_samples / header->num_channels /
+    return (float) header->num_samples / header->num_channels /
         header->sample_rate;
+}
+
+static inline   uint32_t
+CalculateOffset(const WavHeader * header,
+                const uint32_t num_samples_to_skip)
+{
+    return num_samples_to_skip * header->num_channels *
+        header->bit_per_sample / 8;
 }

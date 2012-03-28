@@ -381,7 +381,7 @@ ext2l(extdouble_t x)
 #define read2(t) (fread(&t, sizeof(t), 1, fp))
 #define chkid(s) (!strncmp(ck.id, s, 4))
 
-static size_t
+static          size_t
 wavparse(wavheader_t * wav, FILE * fp)
 {
     riffchunk_t     ck;
@@ -407,7 +407,7 @@ wavparse(wavheader_t * wav, FILE * fp)
     return 0;
 }
 
-static size_t
+static          size_t
 aifparse(aifheader_t * aif, FILE * fp)
 {
     riffchunk_t     ck;
@@ -434,7 +434,7 @@ aifparse(aifheader_t * aif, FILE * fp)
     return 0;
 }
 
-static size_t
+static          size_t
 wav_readinfo(wav_info_t * info, FILE * fp)
 {
     riffchunk_t     ck;
