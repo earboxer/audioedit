@@ -36,19 +36,21 @@
 /*
  * Prototypes
  */
-static WavHeader      *ConstructTrimedHeader(const WavHeader * header,
-                                      const uint32_t new_num_samples,
-                                      const uint32_t num_samples_to_skip);
+static WavHeader *ConstructTrimedHeader(const WavHeader * header,
+                                        const uint32_t new_num_samples,
+                                        const uint32_t
+                                        num_samples_to_skip);
 
-static WavHeader      *ConstructMergedHeader(const WavHeader * first_header,
-                                      const WavHeader * second_header);
+static WavHeader *ConstructMergedHeader(const WavHeader * first_header,
+                                        const WavHeader * second_header);
 
-static WavHeader      *CopyDataFromFileOrDie(const char *fin_path);
+static WavHeader *CopyDataFromFileOrDie(const char *fin_path);
 
-static Status          WriteDataOrDie(const void *data, const char *fout_path,
+static Status   WriteDataOrDie(const void *data, const char *fout_path,
                                const uint64_t size, const int is_appended);
 
 static void     RainCheck(const WavHeader * header);
+
 static inline uint32_t CalculateNumSamples(const WavHeader * header);
 static inline float CalculateLengthInSecond(const WavHeader * header);
 static inline uint32_t CalculateOffset(const WavHeader * header,
@@ -126,13 +128,17 @@ Merge(const char *first_fin_path, const char *second_fin_path,
     WavHeader      *first_fin_header = NULL,
         *second_fin_header = NULL,
         *fout_header = NULL;
+
     first_fin_header = CopyDataFromFileOrDie(first_fin_path);
     check_ptr(first_fin_header);
+
     second_fin_header = CopyDataFromFileOrDie(second_fin_path);
     check_ptr(second_fin_header);
+
     fout_header =
         ConstructMergedHeader(first_fin_header, second_fin_header);
     check_ptr(fout_header);
+
     WriteDataOrDie(fout_header, fout_path, kTotalHeaderSize, 0);
     WriteDataOrDie(first_fin_header->content, fout_path,
                    first_fin_header->subchunk2_size, 1);
@@ -157,7 +163,7 @@ Merge(const char *first_fin_path, const char *second_fin_path,
 }
 
 
-WavHeader      *
+static WavHeader *
 ConstructTrimedHeader(const WavHeader * original_header,
                       const uint32_t target_num_samples,
                       const uint32_t begin_num_samples_to_skip)
@@ -174,12 +180,14 @@ ConstructTrimedHeader(const WavHeader * original_header,
     new_header->subchunk2_size =
         original_header->subchunk2_size / original_header->num_samples *
         target_num_samples;
-    new_header->chunk_size = 36 + new_header->subchunk2_size;
+    new_header->chunk_size =
+        kTotalHeaderSize - sizeof(new_header->subchunk2_size) +
+        new_header->subchunk2_size;
     CalculateLengthInSecond(new_header);
 
-    new_header->content =
-        original_header->content + CalculateOffset(original_header,
-                                                   begin_num_samples_to_skip);
+    new_header->content = original_header->content +
+        CalculateOffset(original_header, begin_num_samples_to_skip);
+
     return new_header;
 
   error:
@@ -189,7 +197,7 @@ ConstructTrimedHeader(const WavHeader * original_header,
     return NULL;
 }
 
-WavHeader      *
+static WavHeader *
 ConstructMergedHeader(const WavHeader * first_header,
                       const WavHeader * second_header)
 {
@@ -198,11 +206,13 @@ ConstructMergedHeader(const WavHeader * first_header,
 
     memcpy(new_header, first_header, sizeof(*new_header));
 
-    new_header->subchunk2_size = first_header->subchunk2_size +
-        second_header->subchunk2_size;
-    new_header->chunk_size = 36 + new_header->subchunk2_size;
-    new_header->num_samples = first_header->num_samples +
-        second_header->num_samples;
+    new_header->subchunk2_size =
+        first_header->subchunk2_size + second_header->subchunk2_size;
+    new_header->chunk_size =
+        kTotalHeaderSize - sizeof(new_header->subchunk2_size)
+        + new_header->subchunk2_size;
+    new_header->num_samples =
+        first_header->num_samples + second_header->num_samples;
     CalculateLengthInSecond(new_header);
 
     return new_header;
@@ -215,7 +225,7 @@ ConstructMergedHeader(const WavHeader * first_header,
 }
 
 
-WavHeader      *
+static WavHeader *
 CopyDataFromFileOrDie(const char *fin_path)
 {
     WavHeader      *header = NULL;
@@ -254,7 +264,7 @@ CopyDataFromFileOrDie(const char *fin_path)
     return NULL;
 }
 
-Status
+static          Status
 WriteDataOrDie(const void *data, const char *fout_path,
                const uint64_t size, int is_appended)
 {
@@ -281,16 +291,11 @@ WriteDataOrDie(const void *data, const char *fout_path,
 static void
 RainCheck(const WavHeader * header)
 {
-    char            id[5];
-    id[4] = '\0';
-    memcpy(id, &(header->chunk_id), 4);
-    check((strcmp(id, "RIFF") == 0), "chunk_id");
-    memcpy(id, &(header->format), 4);
-    check((strcmp(id, "WAVE") == 0), "format");
-    memcpy(id, &(header->subchunk1_id), 4);
-    check((strcmp(id, "fmt ") == 0), "subchunk1_id");
-    memcpy(id, &(header->subchunk2_id), 4);
-    check((strcmp(id, "data") == 0), "subchunk2_id");
+#define checkId(A, M) check((strncmp((char *) &(A), (M), 4) == 0), M);
+    checkId(header->chunk_id, "RIFF");
+    checkId(header->format, "WAVE");
+    checkId(header->subchunk1_id, "fmt ");
+    checkId(header->subchunk2_id, "data");
 
     return;
 
