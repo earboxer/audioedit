@@ -74,17 +74,12 @@ typedef struct WavHeader {
 __attribute__ ((__packed__))
 #endif
     WavHeader;
+Status          Trim(const char *fin_path,
+                     const uint32_t begin_num_samples_to_trim,
+                     const uint32_t end_num_samples_to_trim,
+                     const char *fout_path);
+Status          Merge(const char *first_fin_path,
+                      const char *second_fin_path, const char *fout_path);
 
 
-WavHeader      *ConstructTrimedHeader(const WavHeader * header,
-                                      const uint32_t new_num_samples,
-                                      const uint32_t num_samples_to_skip);
-
-WavHeader      *ConstructMergedHeader(const WavHeader * first_header,
-                                      const WavHeader * second_header);
-
-WavHeader      *CopyDataFromFileOrDie(const char *fin_path);
-
-Status          WriteDataOrDie(const void *data, const char *fout_path,
-                               const uint64_t size, const int is_appended);
 #endif                          /* FILE_H_ */
