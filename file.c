@@ -33,6 +33,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define __DEBUG__
+
 /*
  * Prototypes
  */
@@ -63,7 +65,6 @@ Status
 Trim(const char *fin_path, const uint32_t begin_num_samples_to_trim,
      const uint32_t end_num_samples_to_trim, const char *fout_path)
 {
-    puts(fin_path);
     WavHeader      *ptr_original_header = NULL,
         *ptr_new_header = NULL;
     uint64_t        fout_num_samples;
@@ -85,16 +86,11 @@ Trim(const char *fin_path, const uint32_t begin_num_samples_to_trim,
                               begin_num_samples_to_trim);
     check_ptr(ptr_new_header);
 
-
 #ifdef __DEBUG__
-    printf("%p %p\n", ptr_original_header->content,
-           ptr_new_header->content);
-    printf("%ld\n", (long) ptr_original_header->subchunk2_size);
-    printf("%ld\n", (long) begin_num_samples_to_trim);
-    printf("original subchunk2size: %ld\n",
-           (long) ptr_original_header->subchunk2_size);
-    printf("new subchunk2size: %ld\n",
-           (long) ptr_new_header->subchunk2_size);
+    printf("Original file:\t%s\tOriginal number of samples:\t%ld\n",
+           fin_path, (long) ptr_original_header->num_samples);
+    printf("Output file:\t%s\tOutput number of samples:\t%ld\n",
+           fout_path, (long) ptr_new_header->num_samples);
 #endif
 
     if (WriteDataOrDie(ptr_new_header, fout_path, kTotalHeaderSize, 0) !=
@@ -138,6 +134,15 @@ Merge(const char *first_fin_path, const char *second_fin_path,
     fout_header =
         ConstructMergedHeader(first_fin_header, second_fin_header);
     check_ptr(fout_header);
+
+#ifdef __DEBUG__
+    printf("Original file:\t%s\tOriginal number of samples:\t%ld\n",
+           first_fin_path, (long) first_fin_header->num_samples);
+    printf("Original file:\t%s\tOriginal number of samples:\t%ld\n",
+           second_fin_path, (long) second_fin_header->num_samples);
+    printf("Output file:\t%s\tOutput number of samples:\t%ld\n",
+           fout_path, (long) fout_header->num_samples);
+#endif
 
     WriteDataOrDie(fout_header, fout_path, kTotalHeaderSize, 0);
     WriteDataOrDie(first_fin_header->content, fout_path,

@@ -74,6 +74,10 @@ typedef struct WavHeader {
 __attribute__ ((__packed__))
 #endif
     WavHeader;
+
+/*
+ * Exported functions.
+ */
 Status          Trim(const char *fin_path,
                      const uint32_t begin_num_samples_to_trim,
                      const uint32_t end_num_samples_to_trim,

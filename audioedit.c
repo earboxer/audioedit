@@ -25,8 +25,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define __DEBUG__
-
 #include "parse.h"
 #include "file.h"
 #include "utils.h"
@@ -74,7 +72,6 @@ main(int argc, char **argv)
                    end_num_samples_to_trim, fout_path) == SUCCESS,
               "Failed to trim");
     }
-
 
     return EXIT_SUCCESS;
 

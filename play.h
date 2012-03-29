@@ -26,5 +26,10 @@
  */
 #ifndef PLAY_H_
 #define PLAY_H_
+
+/*
+ * Exported functions.
+ */
 int             Play(const char *file_name);
+
 #endif                          /* PLAY_H_ */

@@ -34,14 +34,14 @@ PROFILE        := NO
 EXECUTABLE      := main
 
 # ------------  list of all source files  --------------------------------------
-SOURCES         := main.c parse.c file.c wavplay.c play.c
+SOURCES         := audioedit.c parse.c file.c wavplay.c play.c
 
 # ------------  compiler  ------------------------------------------------------
-CC              := clang
+CC              := gcc
 CXX             := g++
 
 # ------------  compiler flags  ------------------------------------------------
-DEBUG_CFLAGS    := -Wall -std=gnu99 -g -Wstrict-prototypes -Werror #-pedantic Wshadow Wextra 
+DEBUG_CFLAGS    := -Wall -std=gnu99 -g -Wstrict-prototypes -Werror #-pedantic Wshadow Wextra
 RELEASE_CFLAGS  := -Wall -std=gnu99 -pedantic -O3
 
 # ------------  linker flags  --------------------------------------------------
