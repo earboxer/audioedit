@@ -48,5 +48,6 @@ typedef enum { SUCCESS, FAILURE } Status;
 #define FREAD_CHECK(D, S, C) { check(fread(D, C, 1, S) == 1, "Cannot read the input file."); }
 #define FWRITE_CHECK(D, S, C) { check(fwrite(D, C, 1, S) == 1, "Cannot write the input file"); }
 #define check_ptr(A) check( (A), "Invalid pointer received." )
+#define min(m,n)    ((m) < (n) ? (m) : (n))
 
 #endif                          /* UTILS_H_ */

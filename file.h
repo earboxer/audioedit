@@ -62,18 +62,15 @@ typedef struct WavHeader {
     uint32_t        subchunk2_size;
     /*
      * Extra fields.
-     * Subchunk2Size == NumSamples * NumChannels * BitPerSample / 8
-     * NumChannels >= 1, BitPerSample >= 8
-     * Hence, Subchunk2Size >= NumSamples
+     * Because Subchunk2Size == NumSamples * NumChannels * BitPerSample / 8,
+     * where NumChannels >= 1, BitPerSample >= 8.
+     * Hence, Subchunk2Size >= NumSamples, which means uint32_t is enough for
+     * the number of samples.
      */
     uint32_t        num_samples;
     float           length_in_second;
     char           *content;
-}
-#ifdef __GNUC__
-__attribute__ ((__packed__))
-#endif
-    WavHeader;
+} __attribute__ ((__packed__)) WavHeader;
 
 /*
  * Exported functions.
@@ -82,8 +79,9 @@ Status          Trim(const char *fin_path,
                      const uint32_t begin_num_samples_to_trim,
                      const uint32_t end_num_samples_to_trim,
                      const char *fout_path);
+Status          Join(const char *first_fin_path,
+                     const char *second_fin_path, const char *fout_path);
 Status          Merge(const char *first_fin_path,
                       const char *second_fin_path, const char *fout_path);
-
 
 #endif                          /* FILE_H_ */

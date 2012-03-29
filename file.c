@@ -32,6 +32,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #define __DEBUG__
 
@@ -114,11 +115,11 @@ Trim(const char *fin_path, const uint32_t begin_num_samples_to_trim,
 }
 
 /*
- * Merges two WAV files into one.
+ * Joins two WAVE files into one.
  */
 Status
-Merge(const char *first_fin_path, const char *second_fin_path,
-      const char *fout_path)
+Join(const char *first_fin_path, const char *second_fin_path,
+     const char *fout_path)
 {
 
     WavHeader      *first_fin_header = NULL,
@@ -167,6 +168,98 @@ Merge(const char *first_fin_path, const char *second_fin_path,
     return FAILURE;
 }
 
+/*
+ * Merges two WAVE files into one.
+ */
+Status
+Merge(const char *first_fin_path, const char *second_fin_path,
+      const char *fout_path)
+{
+    WavHeader      *ptr_first_fin = NULL,
+        *ptr_second_fin = NULL,
+        *ptr_longer_fin = NULL,
+        *ptr_shorter_fin = NULL;
+    uint32_t        num_samples_to_merge;
+
+    ptr_first_fin = CopyDataFromFileOrDie(first_fin_path);
+    check_ptr(ptr_first_fin);
+
+    ptr_second_fin = CopyDataFromFileOrDie(second_fin_path);
+    check_ptr(ptr_second_fin);
+
+    check(ptr_first_fin->bit_per_sample == ptr_second_fin->bit_per_sample,
+          "The input files have different bit per sample.");
+    check(ptr_first_fin->num_channels == ptr_second_fin->num_channels,
+          "The input files have different numbers of channels.");
+
+    if (ptr_first_fin->num_samples > ptr_second_fin->num_samples) {
+        ptr_longer_fin = ptr_first_fin;
+        ptr_shorter_fin = ptr_second_fin;
+    } else {
+        ptr_longer_fin = ptr_second_fin;
+        ptr_shorter_fin = ptr_first_fin;
+    }
+    num_samples_to_merge = ptr_shorter_fin->num_samples;
+
+    int             i;
+    uint16_t        byte_per_sample = ptr_first_fin->bit_per_sample / 8;
+    uint32_t        offset = 0;
+
+    if (ptr_longer_fin->bit_per_sample == 8) {
+        uint8_t         usample_a,
+                        usample_b,
+                        uresult_sample;
+        for (i = 0; i < num_samples_to_merge; i++) {
+            offset = byte_per_sample * i;
+            memcpy(&usample_a, ptr_longer_fin->content + offset,
+                   byte_per_sample);
+            memcpy(&usample_b, ptr_shorter_fin->content + offset,
+                   byte_per_sample);
+            uresult_sample =
+                usample_a + usample_b -
+                usample_a * usample_b / (uint8_t) pow(2, 8);
+            memcpy(ptr_longer_fin->content + offset, &uresult_sample,
+                   byte_per_sample);
+        }
+    } else if (ptr_longer_fin->bit_per_sample == 16) {
+        int16_t         sample_a,
+                        sample_b,
+                        result_sample;
+        for (i = 0; i < num_samples_to_merge; i++) {
+            offset = byte_per_sample * i;
+            memcpy(&sample_a, ptr_longer_fin->content + offset,
+                   byte_per_sample);
+            memcpy(&sample_b, ptr_shorter_fin->content + offset,
+                   byte_per_sample);
+            result_sample =
+                sample_a + sample_b -
+                sample_a * sample_b / (int16_t) pow(2, 16);
+            memcpy(ptr_longer_fin->content + offset, &result_sample,
+                   byte_per_sample);
+        }
+    } else {
+        fputs("ERROR", stderr);
+        goto error;
+    }
+
+    WriteDataOrDie(ptr_longer_fin, fout_path, kTotalHeaderSize, 0);
+    WriteDataOrDie(ptr_longer_fin->content, fout_path,
+                   ptr_longer_fin->subchunk2_size, 1);
+
+
+    FREEMEM_(ptr_first_fin->content);
+    FREEMEM_(ptr_first_fin);
+    FREEMEM_(ptr_second_fin->content);
+    FREEMEM_(ptr_second_fin);
+    return SUCCESS;
+
+  error:
+    FREEMEM_(ptr_first_fin->content);
+    FREEMEM_(ptr_first_fin);
+    FREEMEM_(ptr_second_fin->content);
+    FREEMEM_(ptr_second_fin);
+    return FAILURE;
+}
 
 static WavHeader *
 ConstructTrimedHeader(const WavHeader * original_header,

@@ -44,8 +44,9 @@ extern char    *fout_path;
 extern uint32_t begin_num_samples_to_trim;
 extern uint32_t end_num_samples_to_trim;
 extern int      trim_flag;
-extern int      merge_flag;
+extern int      join_flag;
 extern int      play_flag;
+extern int      merge_flag;
 extern char    *fplay_path;
 
 
@@ -62,9 +63,14 @@ main(int argc, char **argv)
         check(Play(fplay_path) == SUCCESS, "Failed to play.");
     }
 
+    if (join_flag) {
+        check(Join(fin_path[0], fin_path[1], fout_path) == SUCCESS,
+              "Failed to join");
+    }
+
     if (merge_flag) {
         check(Merge(fin_path[0], fin_path[1], fout_path) == SUCCESS,
-              "Failed to merge");
+              "Failed to merge.");
     }
 
     if (trim_flag) {

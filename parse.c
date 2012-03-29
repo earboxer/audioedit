@@ -43,9 +43,11 @@ char           *fout_path = NULL;
 
 int             play_flag = 0;
 
-int             merge_flag = 0;
-
 int             trim_flag = 0;
+
+int             join_flag = 0;
+
+int             merge_flag = 0;
 
 uint32_t        begin_num_samples_to_trim = 0,
     end_num_samples_to_trim = 0;
@@ -70,7 +72,7 @@ ParseArguments(int argc, char *argv[])
     int             ch;
     char          **fin = NULL;
 
-    while ((ch = getopt(argc, argv, "p:io:b:e:tmhv")) != -1) {
+    while ((ch = getopt(argc, argv, "p:io:b:e:tjmhv")) != -1) {
         switch (ch) {
         case 'p':
             play_flag = 1;
@@ -121,6 +123,9 @@ ParseArguments(int argc, char *argv[])
                 break;
             }
             goto error;
+        case 'j':
+            join_flag = 1;
+            break;
         case 'm':
             merge_flag = 1;
             break;
@@ -150,7 +155,7 @@ ParseArguments(int argc, char *argv[])
         }
     }
 
-    check(play_flag + trim_flag + merge_flag == 1,
+    check(play_flag + trim_flag + join_flag == 1,
           "You are too greedy. Please rerun with less options");
 
     check(begin_num_samples_to_trim >= 0 && end_num_samples_to_trim >= 0,
