@@ -31,7 +31,7 @@ DEBUG          := YES
 PROFILE        := NO
 
 # ------------  name of the executable  ----------------------------------------
-EXECUTABLE      := main
+EXECUTABLE      := audioedit
 
 # ------------  list of all source files  --------------------------------------
 SOURCES         := audioedit.c parse.c file.c wavplay.c play.c
