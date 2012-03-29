@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012, Metian Huang
+ * Copyright (c) 2012 Meitian Huang.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution
  *
- * THIS SOFTWARE IS PROVIDED BY Metian Huang AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY COPYRIGHT OWNER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
@@ -24,6 +24,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 #ifndef PARSE_H_
 #define PARSE_H_
 
@@ -31,6 +32,6 @@
 
 #define MAX_NUM_INPUTFILES 10
 #define VERSION "v0.1"
-Status          ParseArguments(int argc, char **argv);
+Status          parse_cmd(int argc, char **argv);
 
 #endif                          /* PARSE_H_ */

@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012, Metian Huang
+ * Copyright (c) 2012 Meitian Huang.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution
  *
- * THIS SOFTWARE IS PROVIDED BY Metian Huang AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY COPYRIGHT OWNER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
@@ -24,15 +24,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 #ifndef FILE_H_
 #define FILE_H_
 
 #include <stdint.h>
+
 #include "utils.h"
 
 #define kTotalHeaderSize        44
 
-typedef struct WavHeader {
+struct wav_header {
     /*
      * Wave file header fields.
      * Total: 44 bytes.
@@ -70,18 +72,18 @@ typedef struct WavHeader {
     uint32_t        num_samples;
     float           length_in_second;
     char           *content;
-} __attribute__ ((__packed__)) WavHeader;
+} __attribute__ ((__packed__));
 
 /*
  * Exported functions.
  */
-Status          Trim(const char *fin_path,
+Status          trim(const char *fin_path,
                      const uint32_t begin_num_samples_to_trim,
                      const uint32_t end_num_samples_to_trim,
                      const char *fout_path);
-Status          Join(const char *first_fin_path,
+Status          join(const char *first_fin_path,
                      const char *second_fin_path, const char *fout_path);
-Status          Merge(const char *first_fin_path,
+Status          merge(const char *first_fin_path,
                       const char *second_fin_path, const char *fout_path);
 
 #endif                          /* FILE_H_ */

@@ -37,7 +37,7 @@ EXECUTABLE      := audioedit
 SOURCES         := audioedit.c parse.c file.c wavplay.c play.c
 
 # ------------  compiler  ------------------------------------------------------
-CC              := gcc
+CC              := clang
 CXX             := g++
 
 # ------------  compiler flags  ------------------------------------------------

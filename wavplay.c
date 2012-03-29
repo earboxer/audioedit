@@ -2,15 +2,19 @@
  * wavplay - a C library to play WAV sound via OSS/ALSA
  *
  * Copyright (c) 2011 Zhihao Yuan.
+ * Copyright (c) 2012 Meitian Huang.
  * All rights reserved.
  *
  * This file is distributed under the 2-clause BSD License.
  */
 
-#include "wavplay.h"
-#include <string.h>
-#include <errno.h>
 #include <sys/param.h>
+
+#include <errno.h>
+#include <string.h>
+
+#include "wavplay.h"
+
 #define BUF_SIZE	4096
 #define eputs(s) (fprintf(stderr, "%s: " s "\n", __func__))
 

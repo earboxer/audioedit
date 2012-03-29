@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012, Meitian Huang
+ * Copyright (c) 2012 Meitian Huang.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution
  *
- * THIS SOFTWARE IS PROVIDED BY Meitian Huang AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY COPYRIGHT OWNER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
@@ -24,6 +24,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 #ifndef UTILS_H_
 #define UTILS_H_
 
@@ -40,14 +41,47 @@
 
 typedef enum { SUCCESS, FAILURE } Status;
 
+#ifdef TRUE
+#undef TRUE
+#endif
+
+#ifdef FALSE
+#undef FALSE
+#endif
+
+typedef enum { FALSE, TRUE } Boolean;
+
 /*
  * Frequently used functions.
  */
-#define FREEMEM_(A) if (A) { free(A); A = NULL;}
-#define CLOSEFD_(A) if (A) { fclose(A); A = NULL; }
-#define FREAD_CHECK(D, S, C) { check(fread(D, C, 1, S) == 1, "Cannot read the input file."); }
-#define FWRITE_CHECK(D, S, C) { check(fwrite(D, C, 1, S) == 1, "Cannot write the input file"); }
-#define check_ptr(A) check( (A), "Invalid pointer received." )
+#define FREEMEM(A) do {                        \
+        if (A) {                                \
+                free(A);                        \
+                A = NULL;                       \
+        }                                       \
+} while (0)
+
+#define CLOSEFD(A) do {                        \
+        if (A) {                                \
+                fclose(A);                      \
+                A = NULL;                       \
+        }                                       \
+} while (0)
+
+#define FREAD_CHECK(D, S, C) do {               \
+        check(fread(D, C, 1, S) == 1,           \
+              "Cannot read the input file.");   \
+} while (0)
+
+#define FWRITE_CHECK(D, S, C) do {              \
+        check(fwrite(D, C, 1, S) == 1,          \
+              "Cannot write the input file");   \
+} while (0)
+
+#define check_ptr(A) do {                       \
+        check((A), "Invalid pointer received.");\
+} while (0)
+
 #define min(m,n)    ((m) < (n) ? (m) : (n))
 
 #endif                          /* UTILS_H_ */

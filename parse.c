@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012, Metian Huang
+ * Copyright (c) 2012 Meitian Huang.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -12,7 +12,7 @@
  * this list of conditions and the following disclaimer in the documentation
  * and/or other materials provided with the distribution
  *
- * THIS SOFTWARE IS PROVIDED BY Metian Huang AND CONTRIBUTORS "AS IS"
+ * THIS SOFTWARE IS PROVIDED BY COPYRIGHT OWNER AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
@@ -24,15 +24,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
+#include <getopt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <unistd.h>
+
 #include "dbg.h"
 #include "parse.h"
 #include "utils.h"
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <getopt.h>
-#include <stdint.h>
 
 /*
  * Global variables
@@ -40,12 +41,11 @@
 
 char           *fout_path = NULL;
 
-
-int             play_flag = 0;
-
 int             trim_flag = 0;
 
 int             join_flag = 0;
+
+int             play_flag = 0;
 
 int             merge_flag = 0;
 
@@ -67,7 +67,7 @@ static void     usage(void);
  * Returns the number of options.
  */
 Status
-ParseArguments(int argc, char *argv[])
+parse_cmd(int argc, char *argv[])
 {
     int             ch;
     char          **fin = NULL;
@@ -155,7 +155,7 @@ ParseArguments(int argc, char *argv[])
         }
     }
 
-    check(play_flag + trim_flag + join_flag == 1,
+    check(play_flag + trim_flag + join_flag + merge_flag == 1,
           "You are too greedy. Please rerun with less options");
 
     check(begin_num_samples_to_trim >= 0 && end_num_samples_to_trim >= 0,
