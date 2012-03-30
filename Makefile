@@ -37,11 +37,14 @@ EXECUTABLE      := audioedit
 SOURCES         := audioedit.c parse.c file.c wavplay.c play.c
 
 # ------------  compiler  ------------------------------------------------------
-CC              := clang
+CC              := gcc
 CXX             := g++
 
 # ------------  compiler flags  ------------------------------------------------
-DEBUG_CFLAGS    := -Wall -std=gnu99 -g -Wstrict-prototypes -Werror #-pedantic Wshadow Wextra
+# Notice: I cannot enable -Wextra because the library to play audio cannot
+# compile with -Wextra enabled. Also, '-std=gnu99' is required by the audio
+# playing library.
+DEBUG_CFLAGS    := -Wall -std=gnu99 -g -Wstrict-prototypes -Werror -D __DEBUG__ #-Wextra
 RELEASE_CFLAGS  := -Wall -std=gnu99 -pedantic -O3
 
 # ------------  linker flags  --------------------------------------------------

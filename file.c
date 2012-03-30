@@ -35,8 +35,6 @@
 #include "file.h"
 #include "utils.h"
 
-#define __DEBUG__
-
 /*
  * Prototypes
  */
@@ -44,8 +42,10 @@ static struct wav_header *trim_header(const struct wav_header *header,
                                       const uint32_t new_num_samples,
                                       const uint32_t num_samples_to_skip);
 
-static struct wav_header *join_header(const struct wav_header *first_header,
-                                      const struct wav_header *second_header);
+static struct wav_header *join_header(const struct wav_header
+                                      *first_header,
+                                      const struct wav_header
+                                      *second_header);
 
 static struct wav_header *read_data(const char *fin_path);
 
@@ -117,7 +117,8 @@ trim(const char *fin_path, const uint32_t begin_num_samples_to_trim,
     return SUCCESS;
 
   error:
-    FREEMEM(original_header->content);
+    if (original_header)
+        FREEMEM(original_header->content);
     FREEMEM(original_header);
     FREEMEM(new_header);
     return FAILURE;
@@ -143,6 +144,13 @@ join(const char *first_fin_path, const char *second_fin_path,
 
     second_fin_header = read_data(second_fin_path);
     check_ptr(second_fin_header);
+
+    check(first_fin_header->bit_per_sample ==
+          second_fin_header->bit_per_sample,
+          "The input files have different bit per sample.");
+    check(first_fin_header->num_channels ==
+          second_fin_header->num_channels,
+          "The input files have different numbers of channels.");
 
     fout_header = join_header(first_fin_header, second_fin_header);
     check_ptr(fout_header);
@@ -172,10 +180,14 @@ join(const char *first_fin_path, const char *second_fin_path,
     return SUCCESS;
 
   error:
-    FREEMEM(first_fin_header->content);
+    if (first_fin_header)
+            FREEMEM(first_fin_header->content);
     FREEMEM(first_fin_header);
-    FREEMEM(second_fin_header->content);
+
+    if (second_fin_header)
+            FREEMEM(second_fin_header->content);
     FREEMEM(second_fin_header);
+
     FREEMEM(fout_header);
     return FAILURE;
 }
@@ -237,10 +249,10 @@ merge(const char *first_fin_path, const char *second_fin_path,
      * support C89. Yet, it is the only way that the least amount of confusion*
      * is introduced.                                                         *
      **************************************************************************/
-    int             i;
+    uint32_t        i;
     uint16_t        byte_per_sample =
         shorter_fin_header->bit_per_sample / 8;
-    uint32_t        offset = 0;                   /* Offset in data */
+    uint32_t        offset = 0; /* Offset in data */
 
     /**************************************************************************
      * ```8-bit samples are stored as unsigned bytes, ranging from 0 to 255.
@@ -253,9 +265,9 @@ merge(const char *first_fin_path, const char *second_fin_path,
      * we can now merge the files.
      *************************************************************************/
     if (longer_fin_header->bit_per_sample == 8) {
-            /*
-             * Well, let's read `usample_a' as `unsigned sample a'.
-             */
+        /*
+         * Well, let's read `usample_a' as `unsigned sample a'.
+         */
         uint8_t         usample_a,
                         usample_b,
                         uresult_sample;
@@ -286,7 +298,9 @@ merge(const char *first_fin_path, const char *second_fin_path,
                    &result_sample, byte_per_sample);
         }
     } else {
-        fputs("The `merge' operation on this type of WAVE file is not implemented", stderr);
+        fputs
+            ("The `merge' operation on this type of WAVE file is not supported.",
+             stderr);
         goto error;
     }
 
@@ -294,6 +308,9 @@ merge(const char *first_fin_path, const char *second_fin_path,
     write_data(longer_fin_header->content, fout_path,
                longer_fin_header->subchunk2_size, TRUE);
 
+    /*
+     * Clean up
+     */
     FREEMEM(first_fin_header->content);
     FREEMEM(first_fin_header);
     FREEMEM(second_fin_header->content);
@@ -301,10 +318,14 @@ merge(const char *first_fin_path, const char *second_fin_path,
     return SUCCESS;
 
   error:
-    FREEMEM(first_fin_header->content);
+    if (first_fin_header)
+            FREEMEM(first_fin_header->content);
     FREEMEM(first_fin_header);
-    FREEMEM(second_fin_header->content);
+
+    if (second_fin_header)
+            FREEMEM(second_fin_header->content);
     FREEMEM(second_fin_header);
+
     return FAILURE;
 }
 
@@ -320,7 +341,7 @@ trim_header(const struct wav_header *original_header,
     memcpy(new_header, original_header, sizeof(*new_header));
 
     /*
-     * Adjust the header
+     * Adjust the header.
      */
     new_header->num_samples = target_num_samples;
     new_header->subchunk2_size =
@@ -341,7 +362,8 @@ trim_header(const struct wav_header *original_header,
     return new_header;
 
   error:
-    FREEMEM(new_header->content);
+    if (new_header)
+            FREEMEM(new_header->content);
     FREEMEM(new_header);
 
     return NULL;
@@ -363,7 +385,7 @@ join_header(const struct wav_header *first_header,
      */
     new_header->subchunk2_size =
         first_header->subchunk2_size + second_header->subchunk2_size;
-     /*
+    /*
      * Assume the total size of header is 44.
      */
     new_header->chunk_size = 36 + new_header->subchunk2_size;
@@ -385,7 +407,7 @@ join_header(const struct wav_header *first_header,
 }
 
 /*
- * A wrapper of I/O functions.
+ * A wrapper function of fread().
  */
 static struct wav_header *
 read_data(const char *fin_path)
@@ -414,26 +436,35 @@ read_data(const char *fin_path)
      */
     CLOSEFD(fin);
 
-    check(rain_check(header) == TRUE, "Invalid header.");
+    check(rain_check(header) == TRUE,
+          "The header seems to corrupted. Please check if %s a valid input file.",
+          fin_path);
 
     header->num_samples = num_samples(header);
+
+#ifdef __DEBUG__
     header->length_in_second = length_in_second(header);
+#endif
 
     return header;
 
   error:
     CLOSEFD(fin);
-    FREEMEM(header->content);
+    if (header)
+            FREEMEM(header->content);
     FREEMEM(header);
 
     return NULL;
 }
 
+/*
+ * A wrapper function of fwrite().
+ */
 static          Status
 write_data(const void *data, const char *fout_path,
            const uint64_t size, const Boolean append)
 {
-    FILE           *fout;
+    FILE           *fout = NULL;
 
     if (append == TRUE)
         fout = fopen(fout_path, "ab");
@@ -453,6 +484,9 @@ write_data(const void *data, const char *fout_path,
     return FAILURE;
 }
 
+/*
+ * Checks if the header is valid.
+ */
 static          Boolean
 rain_check(const struct wav_header *header)
 {
@@ -462,16 +496,16 @@ rain_check(const struct wav_header *header)
     checkId(header->subchunk1_id, "fmt ");
     checkId(header->subchunk2_id, "data");
 #undef checkId
-
     return TRUE;
 
   error:
-    fputs(" ********************** ERROR ***********************\n"
-          " YOU are screwed. Either you supply an invalid audio \n"
-          " or you run this program on a wrong machine. Please  \n"
-          " check your input or/and read README.md\n"
-          " ****************************************************\n",
-          stderr);
+    fputs
+        (" *************************** ERROR *****************************\n"
+         " YOU are screwed. Either you supply an invalid audio or you run \n"
+         " this program on a big-endianness machine. Please check your    \\n"
+         " input or/and read README.md\n"
+         " ***************************************************************\n",
+         stderr);
     return FALSE;
 }
 

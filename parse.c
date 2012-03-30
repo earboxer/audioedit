@@ -41,26 +41,26 @@
 
 char           *fout_path = NULL;
 
-int             trim_flag = 0;
+Boolean         trim_flag = FALSE;
 
-int             join_flag = 0;
+Boolean         join_flag = FALSE;
 
-int             play_flag = 0;
+Boolean         play_flag = FALSE;
 
-int             merge_flag = 0;
+Boolean         merge_flag = FALSE;
 
 uint32_t        begin_num_samples_to_trim = 0,
     end_num_samples_to_trim = 0;
 
-char           *fin_path[MAX_NUM_INPUTFILES] = { NULL };
+char           *fin_path[2] = { NULL };
 
 char           *fplay_path = NULL;
 
 /*
  * Function prototypes
  */
-static void     usage(void);
-
+static inline void usage(void);
+static inline int num_options(void);
 /*
  * Parses command line arguments.
  * Returns the number of options.
@@ -70,11 +70,12 @@ parse_cmd(int argc, char *argv[])
 {
     int             ch;
     char          **fin = NULL;
+    int             i = 0;
 
     while ((ch = getopt(argc, argv, "p:io:b:e:tjmhv")) != -1) {
         switch (ch) {
         case 'p':
-            play_flag = 1;
+            play_flag = TRUE;
             fplay_path = optarg;
             break;
         case 'i':
@@ -85,8 +86,8 @@ parse_cmd(int argc, char *argv[])
              * with '-' is seen.
              */
             for (fin = fin_path;
-                 optind < argc && argv[optind][0] != '-';
-                 fin++, optind++) {
+                 optind < argc && argv[optind][0] != '-' && i <= 2;
+                 fin++, optind++, i++) {
                 *fin = argv[optind];
             }
             break;
@@ -106,7 +107,7 @@ parse_cmd(int argc, char *argv[])
              * exploit this feature.
              */
             if (argv[optind - 2][0] == '-' && argv[optind - 2][1] == 't') {
-                trim_flag = 1;
+                trim_flag = TRUE;
                 begin_num_samples_to_trim =
                     (uint32_t) strtol(optarg, (char **) NULL, 10);
                 break;
@@ -117,17 +118,17 @@ parse_cmd(int argc, char *argv[])
              * Same as '-b'.
              */
             if (argv[optind - 2][0] == '-' && argv[optind - 2][1] == 't') {
-                trim_flag = 1;
+                trim_flag = TRUE;
                 end_num_samples_to_trim =
                     (uint32_t) strtol(optarg, (char **) NULL, 10);
                 break;
             }
             goto error;
         case 'j':
-            join_flag = 1;
+            join_flag = TRUE;
             break;
         case 'm':
-            merge_flag = 1;
+            merge_flag = TRUE;
             break;
         case 'v':
             /*
@@ -155,11 +156,20 @@ parse_cmd(int argc, char *argv[])
         }
     }
 
-    check(play_flag + trim_flag + join_flag + merge_flag == 1,
-          "You are too greedy. Please rerun with less options");
+    check(num_options() == 1,
+          "Please supply the right amount of options.");
 
     check(begin_num_samples_to_trim >= 0 && end_num_samples_to_trim >= 0,
           "Sorry, I don't know what to do with a negative number of samples");
+
+    if (trim_flag == TRUE)
+        check(fin_path[0] != NULL && fin_path[1] == NULL,
+              "You need to provide exactly one input files.");
+    if (merge_flag == TRUE || join_flag == TRUE)
+        check(fin_path[0] != NULL && fin_path[1] != NULL,
+              "You need to provide exactly two input files.");
+    if (play_flag == TRUE)
+        check(fplay_path != NULL, "What do you want to play?");
 
     return SUCCESS;
 
@@ -171,7 +181,7 @@ parse_cmd(int argc, char *argv[])
 /*
  * Prints out usage information. 
  */
-void
+static inline void
 usage(void)
 {
     fputs("OPTIONS\n"
@@ -183,4 +193,19 @@ usage(void)
           "    -i file [,...]  provide the input file name\n"
           "    -o file         provide the output file name(overwriting an existing file)\n",
           stderr);
+}
+
+static inline int
+num_options(void)
+{
+    int             count = 0;
+    if (trim_flag == TRUE)
+        count++;
+    if (play_flag == TRUE)
+        count++;
+    if (join_flag == TRUE)
+        count++;
+    if (merge_flag == TRUE)
+        count++;
+    return count;
 }

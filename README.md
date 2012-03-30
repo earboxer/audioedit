@@ -1,16 +1,17 @@
-% AUDIOEDIT(1) Linux User Mannuals
-% Meitian Huang
-% 28 March, 2012
-
-# NAME
+NAME
+====
 audioeditor - command line program for editing WAVE audio files.
 
-#SYNOPSIS
-``audioedit -h``
+SYNOPSIS
+--------
 
-``audioedit -v``
+        audioedit -h
 
-``audioedit *OPTION* -i FILE [...] -o FILE``
+        audioedit -v
+
+        audioedit -p FILE
+
+        audioedit *OPTION* -i FILE [FILE] -o FILE
 
 
 # DESCRIPTION
@@ -35,6 +36,9 @@ joining files. In addition, it also supports WAVE playback.
 -j
 :    Join the input files.
 
+-m
+:    Merge the input files.
+
 -p
 :    Play the input files.
 
@@ -44,24 +48,46 @@ joining files. In addition, it also supports WAVE playback.
 -o *FILE*
 :    Specify the output file name(overwriting an existing file).
 
-# FILE
-``audioedit`` expects at least one input file and only one output file.
+FILE
+----
+``audioedit`` expects different numbers of FILEs upon different operations. To
+be specific, it expects:
 
-# DESIGN
-1. Functions should be atomic. Functions must have a minimal amount of side
-   effects.
+- Exactly 1 input file for trimming.
 
-2. The returned value of functions MUST be checked. Programmers who do not 
-   check the return value of fread() are ugly and stupid.
+- Exactly 1 input file for playing.
 
-3. Compatibility with Microsoft's OS is the last TODO.
+- Exactly 2 input files for merging and joining.
 
-4. Using bloated libraries is stupid.
+EXAMPLES
+--------
 
-5. The program should be defensive.
+- Trim the first 100000 samples and the last 100000 samples of the file
+  ``foo.wav`` and save the resultant file to ``bar.wav``.
 
-6. Your code is shit if there is ONE function that has an argument such that:
-   a) it is not a pointer, b) it is not declared as `const`.
+        audioedit -tb 100000 -te 100000 -i foo.wav -o bar.wav
 
-7. If you write a program of this size and there is no single function that has
-   at least one `const` argument, GO TO HELL.
+- Join foo.wav with bar.wav and save to foobar.wav.
+
+        audioedit -j -i foo.wav bar.wav -o foobar.wav
+
+- Merge foo.wav with bar.wav and save to foobar.wav.
+
+        audioedit -m -i foo.wav bar.wav -o foobar.wav
+
+- Play foo.wav.
+
+        audioedit -p foo.wav
+
+BUGS
+----
+- This program cannot directly play audio on the latest version of Ubuntu
+  because the playback depends on OSS while Ubuntu has switched to
+  Pulse(alsa-based). Instead, use:
+        padsp audioedit -p foo.wav
+  if you want to play the audio.
+
+- This program cannot play audio on Mac OS X because Mac OS X has its own set
+  of APIs(for example, QuickTimes).
+
+- Merging is only possible for files that have bit-per-sample of 8 or 16.

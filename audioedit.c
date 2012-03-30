@@ -61,13 +61,16 @@ main(int argc, char **argv)
 
     if (play_flag) {
         check(play(fplay_path) == SUCCESS, "Failed to play.");
-    } if (join_flag) {
+    }
+    if (join_flag) {
         check(join(fin_path[0], fin_path[1], fout_path) == SUCCESS,
               "Failed to join");
-    } if (merge_flag) {
+    }
+    if (merge_flag) {
         check(merge(fin_path[0], fin_path[1], fout_path) == SUCCESS,
               "Failed to merge.");
-    } if (trim_flag) {
+    }
+    if (trim_flag) {
         check(trim(fin_path[0], begin_num_samples_to_trim,
                    end_num_samples_to_trim, fout_path) == SUCCESS,
               "Failed to trim");

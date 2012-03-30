@@ -424,7 +424,7 @@ aifparse(aifheader_t * aif, FILE * fp)
                 return ck.size;
             ck.size = (ck.size + 1) / 2 * 2;
             if (chkid("COMM")) {
-                int             ckl = MIN(ck.size, sizeof(aifheader_t));
+                uint64_t        ckl = MIN(ck.size, sizeof(aifheader_t));
                 fread(aif, ckl, 1, fp);
                 if (ckl < (sizeof(aifheader_t) - sizeof(aif->comptype)))
                     eputs("Bad common chunk");
