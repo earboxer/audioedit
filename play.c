@@ -12,6 +12,10 @@
 
 #include "wavplay.h"
 
+
+/*
+ * Drops the audio playing if receives a signal.
+ */
 static void
 drop(int sig)
 {
@@ -21,6 +25,9 @@ drop(int sig)
 #endif
 }
 
+/*
+ * Plays the WAVE audio.
+ */
 int
 play(const char *file_name)
 {

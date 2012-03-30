@@ -43,8 +43,7 @@ static struct wav_header *trim_header(const struct wav_header *header,
                                       const uint32_t num_samples_to_skip);
 
 static struct wav_header *join_header(const struct wav_header
-                                      *first_header,
-                                      const struct wav_header
+                                      *first_header, const struct wav_header
                                       *second_header);
 
 static struct wav_header *read_data(const char *fin_path);
@@ -181,11 +180,11 @@ join(const char *first_fin_path, const char *second_fin_path,
 
   error:
     if (first_fin_header)
-            FREEMEM(first_fin_header->content);
+        FREEMEM(first_fin_header->content);
     FREEMEM(first_fin_header);
 
     if (second_fin_header)
-            FREEMEM(second_fin_header->content);
+        FREEMEM(second_fin_header->content);
     FREEMEM(second_fin_header);
 
     FREEMEM(fout_header);
@@ -319,11 +318,11 @@ merge(const char *first_fin_path, const char *second_fin_path,
 
   error:
     if (first_fin_header)
-            FREEMEM(first_fin_header->content);
+        FREEMEM(first_fin_header->content);
     FREEMEM(first_fin_header);
 
     if (second_fin_header)
-            FREEMEM(second_fin_header->content);
+        FREEMEM(second_fin_header->content);
     FREEMEM(second_fin_header);
 
     return FAILURE;
@@ -363,7 +362,7 @@ trim_header(const struct wav_header *original_header,
 
   error:
     if (new_header)
-            FREEMEM(new_header->content);
+        FREEMEM(new_header->content);
     FREEMEM(new_header);
 
     return NULL;
@@ -451,7 +450,7 @@ read_data(const char *fin_path)
   error:
     CLOSEFD(fin);
     if (header)
-            FREEMEM(header->content);
+        FREEMEM(header->content);
     FREEMEM(header);
 
     return NULL;

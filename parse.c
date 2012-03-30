@@ -179,7 +179,7 @@ parse_cmd(int argc, char *argv[])
 }
 
 /*
- * Prints out usage information. 
+ * Prints out usage information.
  */
 static inline void
 usage(void)
@@ -189,12 +189,17 @@ usage(void)
           "    -v              display the version number\n"
           "    -tb n           trim n samples from the beginning for the audio clip\n"
           "    -te m           trim m samples off the end of the audio clip\n"
-          "    -a              append the input files."
+          "    -j              join the input files."
+          "    -m              merge the input files."
+          "    -p FILE         play FILE."
           "    -i file [,...]  provide the input file name\n"
           "    -o file         provide the output file name(overwriting an existing file)\n",
           stderr);
 }
 
+/*
+ * Counts the number of options in the command line arguments.
+ */
 static inline int
 num_options(void)
 {

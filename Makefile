@@ -71,7 +71,7 @@ endif
 GLOBAL_INC_DIR  =
 
 # ------------  private include directories  -----------------------------------
-LOCAL_INC_DIR   = inc
+LOCAL_INC_DIR   =
 
 # ------------  system libraries  (e.g. -lm )  ---------------------------------
 SYS_LIBS        = -lm

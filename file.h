@@ -34,6 +34,11 @@
 
 #define kTotalHeaderSize        44
 
+/*
+ * Why not typedef? Because it is evil.
+ * For more information, see "Linux kernel coding style" or do a "man style" on
+ * FreeBSD.
+ */
 struct wav_header {
     /*
      * Wave file header fields.

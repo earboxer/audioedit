@@ -38,7 +38,7 @@
 #include "play.h"
 #include "utils.h"
 
-extern char    *fin_path[MAX_NUM_INPUTFILES];
+extern char    *fin_path[];
 extern char    *fout_path;
 extern int      trim_flag;
 extern int      join_flag;
