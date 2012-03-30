@@ -61,7 +61,6 @@ char           *fplay_path = NULL;
  */
 static void     usage(void);
 
-
 /*
  * Parses command line arguments.
  * Returns the number of options.
@@ -85,7 +84,8 @@ parse_cmd(int argc, char *argv[])
              * Put every separate token into the array until a token begins
              * with '-' is seen.
              */
-            for (fin = fin_path; optind < argc && argv[optind][0] != '-';
+            for (fin = fin_path;
+                 optind < argc && argv[optind][0] != '-';
                  fin++, optind++) {
                 *fin = argv[optind];
             }
@@ -167,7 +167,6 @@ parse_cmd(int argc, char *argv[])
     usage();
     return FAILURE;
 }
-
 
 /*
  * Prints out usage information. 

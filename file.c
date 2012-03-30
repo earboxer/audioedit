@@ -44,9 +44,8 @@ static struct wav_header *trim_header(const struct wav_header *header,
                                       const uint32_t new_num_samples,
                                       const uint32_t num_samples_to_skip);
 
-static struct wav_header *join_header(const struct wav_header
-                                      *first_header, const struct wav_header
-                                      *second_header);
+static struct wav_header *join_header(const struct wav_header *first_header,
+                                      const struct wav_header *second_header);
 
 static struct wav_header *read_data(const char *fin_path);
 
@@ -61,7 +60,7 @@ static inline uint32_t skip(const struct wav_header *header,
                             const uint32_t num_samples_to_skip);
 
 /*
- * Trims the specified WAV file.
+ * Trims the specified WAVE file.
  */
 Status
 trim(const char *fin_path, const uint32_t begin_num_samples_to_trim,
@@ -69,15 +68,21 @@ trim(const char *fin_path, const uint32_t begin_num_samples_to_trim,
 {
     struct wav_header *original_header = NULL,
         *new_header = NULL;
-    uint64_t        fout_num_samples;
-    uint64_t        num_samples_to_trim =
+    uint32_t        fout_num_samples;
+    uint32_t        num_samples_to_trim =
         begin_num_samples_to_trim + end_num_samples_to_trim;
 
+    /*
+     * Reads header & data from fin.
+     */
     original_header = read_data(fin_path);
     check_ptr(original_header);
 
+    /*
+     * Checks if the desired number of samples to trim is valid.
+     */
     check(num_samples_to_trim < original_header->num_samples,
-          "The specified number \"%ld\" of samples is not valid.",
+          "The specified number \"%d\" of samples is not valid.",
           num_samples_to_trim);
 
     fout_num_samples = original_header->num_samples - num_samples_to_trim;
@@ -93,6 +98,9 @@ trim(const char *fin_path, const uint32_t begin_num_samples_to_trim,
            fout_path, (long) new_header->num_samples);
 #endif
 
+    /*
+     * Writes header & data.
+     */
     if (write_data(new_header, fout_path, kTotalHeaderSize, FALSE) !=
         SUCCESS)
         goto error;
@@ -127,6 +135,9 @@ join(const char *first_fin_path, const char *second_fin_path,
         *second_fin_header = NULL,
         *fout_header = NULL;
 
+    /*
+     * Read headers & data.
+     */
     first_fin_header = read_data(first_fin_path);
     check_ptr(first_fin_header);
 
@@ -159,6 +170,7 @@ join(const char *first_fin_path, const char *second_fin_path,
     FREEMEM(second_fin_header);
     FREEMEM(fout_header);
     return SUCCESS;
+
   error:
     FREEMEM(first_fin_header->content);
     FREEMEM(first_fin_header);
@@ -170,6 +182,9 @@ join(const char *first_fin_path, const char *second_fin_path,
 
 /*
  * Merges two WAVE files into one.
+ * In order to be merged, the input files should
+ * 1. have identical number of channels and bit-per-sample.
+ * 2. has a bit-per-sample of 8 or 16(see the explanation later).
  */
 Status
 merge(const char *first_fin_path, const char *second_fin_path,
@@ -181,12 +196,18 @@ merge(const char *first_fin_path, const char *second_fin_path,
         *shorter_fin_header = NULL;
     uint32_t        num_samples_to_merge;
 
+    /*
+     * Reads headers & data.
+     */
     first_fin_header = read_data(first_fin_path);
     check_ptr(first_fin_header);
 
     second_fin_header = read_data(second_fin_path);
     check_ptr(second_fin_header);
 
+    /*
+     * Checks if input files are compatible.
+     */
     check(first_fin_header->bit_per_sample ==
           second_fin_header->bit_per_sample,
           "The input files have different bit per sample.");
@@ -194,6 +215,10 @@ merge(const char *first_fin_path, const char *second_fin_path,
           second_fin_header->num_channels,
           "The input files have different numbers of channels.");
 
+    /*
+     * Makes longer_fin_header the fin header with more number of samples.
+     * Makes shorter_fin_header the fin header with less number of samples.
+     */
     if (first_fin_header->num_samples > second_fin_header->num_samples) {
         longer_fin_header = first_fin_header;
         shorter_fin_header = second_fin_header;
@@ -201,14 +226,36 @@ merge(const char *first_fin_path, const char *second_fin_path,
         longer_fin_header = second_fin_header;
         shorter_fin_header = first_fin_header;
     }
+
+    /*
+     * Only needs to merge the number of samples that shorter_fin_header has.
+     */
     num_samples_to_merge = shorter_fin_header->num_samples;
 
+    /**************************************************************************
+     * I know doing this will break the compatibility with compilers that only*
+     * support C89. Yet, it is the only way that the least amount of confusion*
+     * is introduced.                                                         *
+     **************************************************************************/
     int             i;
     uint16_t        byte_per_sample =
         shorter_fin_header->bit_per_sample / 8;
-    uint32_t        offset = 0;
+    uint32_t        offset = 0;                   /* Offset in data */
 
+    /**************************************************************************
+     * ```8-bit samples are stored as unsigned bytes, ranging from 0 to 255.
+     * 16-bit samples are stored as 2's-complement signed integers, ranging
+     * from -32768 to 32767.'''
+     * See: https://ccrma.stanford.edu/courses/422/projects/WaveFormat/
+     *
+     * Apply the principle described in
+     * http://www.vttoth.com/CMS/index.php/technical-notes/68
+     * we can now merge the files.
+     *************************************************************************/
     if (longer_fin_header->bit_per_sample == 8) {
+            /*
+             * Well, let's read `usample_a' as `unsigned sample a'.
+             */
         uint8_t         usample_a,
                         usample_b,
                         uresult_sample;
@@ -220,8 +267,8 @@ merge(const char *first_fin_path, const char *second_fin_path,
                    byte_per_sample);
             uresult_sample = usample_a + usample_b -
                 usample_a * usample_b / (uint8_t) pow(2, 8);
-            memcpy(longer_fin_header->content + offset, &uresult_sample,
-                   byte_per_sample);
+            memcpy(longer_fin_header->content + offset,
+                   &uresult_sample, byte_per_sample);
         }
     } else if (longer_fin_header->bit_per_sample == 16) {
         int16_t         sample_a,
@@ -235,11 +282,11 @@ merge(const char *first_fin_path, const char *second_fin_path,
                    byte_per_sample);
             result_sample = sample_a + sample_b -
                 sample_a * sample_b / (int16_t) pow(2, 16);
-            memcpy(longer_fin_header->content + offset, &result_sample,
-                   byte_per_sample);
+            memcpy(longer_fin_header->content + offset,
+                   &result_sample, byte_per_sample);
         }
     } else {
-        fputs("ERROR", stderr);
+        fputs("The `merge' operation on this type of WAVE file is not implemented", stderr);
         goto error;
     }
 
@@ -279,10 +326,14 @@ trim_header(const struct wav_header *original_header,
     new_header->subchunk2_size =
         original_header->subchunk2_size / original_header->num_samples *
         target_num_samples;
-    new_header->chunk_size =
-        kTotalHeaderSize - sizeof(new_header->subchunk2_size) +
-        new_header->subchunk2_size;
+    /*
+     * Assume the total size of header is 44.
+     */
+    new_header->chunk_size = 36 + new_header->subchunk2_size;
+
+#ifdef __DEBUG__
     new_header->length_in_second = length_in_second(new_header);
+#endif
 
     new_header->content = original_header->content +
         skip(original_header, begin_num_samples_to_skip);
@@ -306,14 +357,23 @@ join_header(const struct wav_header *first_header,
 
     memcpy(new_header, first_header, sizeof(*new_header));
 
+    /*
+     * Adjust the headers.
+     * Simply add up every proper field.
+     */
     new_header->subchunk2_size =
         first_header->subchunk2_size + second_header->subchunk2_size;
-    new_header->chunk_size =
-        kTotalHeaderSize - sizeof(new_header->subchunk2_size)
-        + new_header->subchunk2_size;
+     /*
+     * Assume the total size of header is 44.
+     */
+    new_header->chunk_size = 36 + new_header->subchunk2_size;
     new_header->num_samples =
         first_header->num_samples + second_header->num_samples;
+
+#ifdef __DEBUG__
     new_header->length_in_second = length_in_second(new_header);
+#endif
+
     new_header->content = NULL;
 
     return new_header;
@@ -324,17 +384,22 @@ join_header(const struct wav_header *first_header,
     return NULL;
 }
 
-
+/*
+ * A wrapper of I/O functions.
+ */
 static struct wav_header *
 read_data(const char *fin_path)
 {
     struct wav_header *header = NULL;
-    FILE           *fin;
+    FILE           *fin = NULL;
 
     header = (struct wav_header *) malloc(sizeof(*header));
     check_mem(header);
 
     fin = fopen(fin_path, "rb");
+    /*
+     * MUST check the return value.
+     */
     check(fin != NULL, "Cannot open the input file: %s", fin_path);
 
     FREAD_CHECK(header, fin, kTotalHeaderSize);

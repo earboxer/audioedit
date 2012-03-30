@@ -46,3 +46,22 @@ joining files. In addition, it also supports WAVE playback.
 
 # FILE
 ``audioedit`` expects at least one input file and only one output file.
+
+# DESIGN
+1. Functions should be atomic. Functions must have a minimal amount of side
+   effects.
+
+2. The returned value of functions MUST be checked. Programmers who do not 
+   check the return value of fread() are ugly and stupid.
+
+3. Compatibility with Microsoft's OS is the last TODO.
+
+4. Using bloated libraries is stupid.
+
+5. The program should be defensive.
+
+6. Your code is shit if there is ONE function that has an argument such that:
+   a) it is not a pointer, b) it is not declared as `const`.
+
+7. If you write a program of this size and there is no single function that has
+   at least one `const` argument, GO TO HELL.
