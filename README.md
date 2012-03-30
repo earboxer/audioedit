@@ -14,12 +14,15 @@ SYNOPSIS
         audioedit *OPTION* -i FILE [FILE] -o FILE
 
 
-# DESCRIPTION
+DESCRIPTION
+-----------
 ``audioedit`` reads the input file(s) and generates desired output file to the
-disk. Currently, ``audioedit`` supports two operations: trimming files and
-joining files. In addition, it also supports WAVE playback.
+disk. Currently, ``audioedit`` supports three operations: trimming, joining, and
+merging. In addition, it also supports WAVE playback.
 
-# OPTIONS
+OPTIONS
+-------
+
 -h
 :    Display this help.
 
