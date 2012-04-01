@@ -8,6 +8,8 @@
  * This file is distributed under the 2-clause BSD License.
  */
 
+#ifndef __APPLE__
+
 #include <signal.h>
 
 #include "wavplay.h"
@@ -42,3 +44,5 @@ play(const char *file_name)
     snd_end();
     return 0;
 }
+
+#endif

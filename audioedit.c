@@ -35,8 +35,11 @@
 #include "dbg.h"
 #include "file.h"
 #include "parse.h"
-#include "play.h"
 #include "utils.h"
+
+#ifndef __APPLE__
+#include "play.h"
+#endif
 
 extern char    *fin_path[];
 extern char    *fout_path;
@@ -60,7 +63,11 @@ main(int argc, char **argv)
           "Cannot parse command line...");
 
     if (play_flag) {
+#ifndef __APPLE__
         check(play(fplay_path) == SUCCESS, "Failed to play.");
+#else
+        log_err("This function is only supported on Linux.");
+#endif
     }
     if (join_flag) {
         check(join(fin_path[0], fin_path[1], fout_path) == SUCCESS,

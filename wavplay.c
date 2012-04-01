@@ -8,6 +8,8 @@
  * This file is distributed under the 2-clause BSD License.
  */
 
+#ifndef __APPLE__
+
 #include <sys/param.h>
 
 #include <errno.h>
@@ -528,3 +530,5 @@ wav_play(const char *fn)
         perror(__func__);
     return st;
 }
+
+#endif
