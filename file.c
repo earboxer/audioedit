@@ -333,8 +333,7 @@ trim_header(const struct wav_header *original_header,
             const uint32_t target_num_samples,
             const uint32_t begin_num_samples_to_skip)
 {
-    struct wav_header *new_header =
-        (struct wav_header *) malloc(sizeof(*new_header));
+    struct wav_header *new_header = malloc(sizeof(*new_header));
     check_mem(new_header);
 
     memcpy(new_header, original_header, sizeof(*new_header));
@@ -372,8 +371,7 @@ static struct wav_header *
 join_header(const struct wav_header *first_header,
             const struct wav_header *second_header)
 {
-    struct wav_header *new_header =
-        (struct wav_header *) malloc(sizeof(*new_header));
+    struct wav_header *new_header = malloc(sizeof(*new_header));
     check_mem(new_header);
 
     memcpy(new_header, first_header, sizeof(*new_header));
@@ -414,7 +412,7 @@ read_data(const char *fin_path)
     struct wav_header *header = NULL;
     FILE           *fin = NULL;
 
-    header = (struct wav_header *) malloc(sizeof(*header));
+    header = malloc(sizeof(*header));
     check_mem(header);
 
     fin = fopen(fin_path, "rb");
@@ -425,7 +423,7 @@ read_data(const char *fin_path)
 
     FREAD_CHECK(header, fin, kTotalHeaderSize);
 
-    header->content = (char *) malloc(header->subchunk2_size);
+    header->content = malloc(header->subchunk2_size);
     check_mem(header->content);
 
     FREAD_CHECK(header->content, fin, header->subchunk2_size);
