@@ -47,6 +47,7 @@ extern int      trim_flag;
 extern int      join_flag;
 extern int      play_flag;
 extern int      merge_flag;
+extern int      count_flag;
 extern uint32_t begin_num_samples_to_trim;
 extern uint32_t end_num_samples_to_trim;
 extern char    *fplay_path;
@@ -81,6 +82,9 @@ main(int argc, char **argv)
         check(trim(fin_path[0], begin_num_samples_to_trim,
                    end_num_samples_to_trim, fout_path) == SUCCESS,
               "Failed to trim");
+    }
+    if (count_flag) {
+				check(count(fin_path[0]) == SUCCESS, "Failed to count.");
     }
 
     return EXIT_SUCCESS;

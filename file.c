@@ -328,6 +328,31 @@ merge(const char *first_fin_path, const char *second_fin_path,
     return FAILURE;
 }
 
+Status
+count(const char *file_path)
+{
+    struct wav_header *original_header = NULL;
+
+    /*
+     * Reads header & data from fin.
+     */
+    original_header = read_data(file_path);
+    check_ptr(original_header);
+
+    /*
+     * Checks if the desired number of samples to trim is valid.
+     */
+    printf("%d", original_header->num_samples);
+    return SUCCESS;
+
+    error:
+      if (original_header)
+          FREEMEM(original_header->content);
+      FREEMEM(original_header);
+
+    return FAILURE;
+}
+
 static struct wav_header *
 trim_header(const struct wav_header *original_header,
             const uint32_t target_num_samples,

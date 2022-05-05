@@ -90,5 +90,6 @@ Status          join(const char *first_fin_path,
                      const char *second_fin_path, const char *fout_path);
 Status          merge(const char *first_fin_path,
                       const char *second_fin_path, const char *fout_path);
+Status          count(const char *file_path);
 
 #endif                          /* FILE_H_ */

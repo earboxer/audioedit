@@ -49,6 +49,8 @@ Boolean         play_flag = FALSE;
 
 Boolean         merge_flag = FALSE;
 
+Boolean         count_flag = FALSE;
+
 uint32_t        begin_num_samples_to_trim = 0,
     end_num_samples_to_trim = 0;
 
@@ -72,7 +74,7 @@ parse_cmd(int argc, char *argv[])
     char          **fin = NULL;
     int             i = 0;
 
-    while ((ch = getopt(argc, argv, "p:io:b:e:tjmhv")) != -1) {
+    while ((ch = getopt(argc, argv, "p:io:b:e:tjmhvc")) != -1) {
         switch (ch) {
         case 'p':
             play_flag = TRUE;
@@ -126,6 +128,9 @@ parse_cmd(int argc, char *argv[])
             goto error;
         case 'j':
             join_flag = TRUE;
+            break;
+        case 'c':
+            count_flag = TRUE;
             break;
         case 'm':
             merge_flag = TRUE;
@@ -192,6 +197,7 @@ usage(void)
           "    -j              join the input files."
           "    -m              merge the input files."
           "    -p FILE         play FILE."
+          "    -c              output number of samples in file.\n"
           "    -i file [,...]  provide the input file name\n"
           "    -o file         provide the output file name(overwriting an existing file)\n",
           stderr);
@@ -211,6 +217,8 @@ num_options(void)
     if (join_flag == TRUE)
         count++;
     if (merge_flag == TRUE)
+        count++;
+    if (count_flag == TRUE)
         count++;
     return count;
 }
