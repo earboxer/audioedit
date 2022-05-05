@@ -94,3 +94,5 @@ BUGS
   of APIs(for example, QuickTimes).
 
 - Merging is only possible for files that have bit-per-sample of 8 or 16.
+
+- Files with a LIST-INFO chunk aren't accepted. You can use `ffmpeg -i bad.wav -bitexact good.wav` for a file with a better header.
