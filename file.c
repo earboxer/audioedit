@@ -524,7 +524,7 @@ rain_check(const struct wav_header *header)
     fputs
         (" *************************** ERROR *****************************\n"
          " YOU are screwed. Either you supply an invalid audio or you run \n"
-         " this program on a big-endianness machine. Please check your    \\n"
+         " this program on a big-endianness machine. Please check your    \n"
          " input or/and read README.md\n"
          " ***************************************************************\n",
          stderr);
